@@ -1,0 +1,169 @@
+{
+  "config": {
+    "id": "content-generation-workflow",
+    "name": "内容生成与发布工作流"
+  },
+  "nodes": [
+    {
+      "config": {
+        "id": "daily-trigger",
+        "name": "定时触发器",
+        "type": "timer-trigger"
+      },
+      "settings": {
+        "interval": 86400000
+      },
+      "originalSettings": {
+        "interval": 86400000
+      }
+    },
+    {
+      "config": {
+        "id": "fetch-trends",
+        "name": "HTTP请求",
+        "type": "http-request"
+      },
+      "settings": {
+        "url": "https://api.twitter.com/2/trends/by/woeid/1",
+        "method": "GET",
+        "headers": {
+          "Authorization": "Bearer {{$settings.twitterBearerToken}}",
+          "Content-Type": "application/json"
+        },
+        "timeout": 15000
+      },
+      "originalSettings": {
+        "url": "https://api.twitter.com/2/trends/by/woeid/1",
+        "method": "GET",
+        "headers": {
+          "Authorization": "Bearer {{$settings.twitterBearerToken}}",
+          "Content-Type": "application/json"
+        },
+        "timeout": 15000
+      }
+    },
+    {
+      "config": {
+        "id": "process-trends",
+        "name": "代码执行",
+        "type": "code"
+      },
+      "settings": {
+        "code": "\n      // 处理Twitter趋势数据\n      const trends = inputs.data && inputs.data[0] ? inputs.data[0].trends : [];\n      \n      // 筛选适合的话题（排除敏感内容）\n      const suitableTopics = trends\n        .filter(trend => {\n          const name = trend.name.toLowerCase();\n          // 简单的内容过滤\n          const blacklist = ['politics', 'controversy', 'scandal'];\n          return !blacklist.some(word => name.includes(word));\n        })\n        .slice(0, 5) // 取前5个话题\n        .map(trend => ({\n          name: trend.name,\n          volume: trend.tweet_volume || 0,\n          url: trend.url\n        }));\n      \n      // 选择最热门的话题作为内容主题\n      const selectedTopic = suitableTopics.length > 0 ? suitableTopics[0] : {\n        name: '科技创新',\n        volume: 1000,\n        url: ''\n      };\n      \n      return {\n        allTopics: suitableTopics,\n        selectedTopic: selectedTopic,\n        contentPrompt: `请写一篇关于\"${selectedTopic.name}\"的800字科普文章，要求通俗易懂，有趣味性。`\n      };\n    "
+      },
+      "originalSettings": {
+        "code": "\n      // 处理Twitter趋势数据\n      const trends = inputs.data && inputs.data[0] ? inputs.data[0].trends : [];\n      \n      // 筛选适合的话题（排除敏感内容）\n      const suitableTopics = trends\n        .filter(trend => {\n          const name = trend.name.toLowerCase();\n          // 简单的内容过滤\n          const blacklist = ['politics', 'controversy', 'scandal'];\n          return !blacklist.some(word => name.includes(word));\n        })\n        .slice(0, 5) // 取前5个话题\n        .map(trend => ({\n          name: trend.name,\n          volume: trend.tweet_volume || 0,\n          url: trend.url\n        }));\n      \n      // 选择最热门的话题作为内容主题\n      const selectedTopic = suitableTopics.length > 0 ? suitableTopics[0] : {\n        name: '科技创新',\n        volume: 1000,\n        url: ''\n      };\n      \n      return {\n        allTopics: suitableTopics,\n        selectedTopic: selectedTopic,\n        contentPrompt: `请写一篇关于\"${selectedTopic.name}\"的800字科普文章，要求通俗易懂，有趣味性。`\n      };\n    "
+      }
+    },
+    {
+      "config": {
+        "id": "content-generator",
+        "name": "AI Agent",
+        "type": "agent"
+      },
+      "settings": {
+        "systemPrompt": "你是一个专业的内容创作者，擅长写作科普文章和技术分享。你的写作风格应该：\n\n    1. 通俗易懂，避免过于专业的术语\n    2. 结构清晰，有引言、正文、结论\n    3. 内容有趣，能够吸引读者\n    4. 事实准确，避免误导信息\n    5. 字数控制在800字左右\n    \n    请根据用户提供的话题，创作一篇高质量的文章。",
+        "model": "gpt-4"
+      },
+      "originalSettings": {
+        "systemPrompt": "你是一个专业的内容创作者，擅长写作科普文章和技术分享。你的写作风格应该：\n\n    1. 通俗易懂，避免过于专业的术语\n    2. 结构清晰，有引言、正文、结论\n    3. 内容有趣，能够吸引读者\n    4. 事实准确，避免误导信息\n    5. 字数控制在800字左右\n    \n    请根据用户提供的话题，创作一篇高质量的文章。",
+        "model": "gpt-4"
+      }
+    },
+    {
+      "config": {
+        "id": "quality-check",
+        "name": "代码执行",
+        "type": "code"
+      },
+      "settings": {
+        "code": "\n      const content = inputs.response;\n      \n      // 简单的内容质量检查\n      const wordCount = content.split(/\\s+/).length;\n      const hasTitle = content.includes('#') || content.split('\\n')[0].length < 100;\n      const hasStructure = content.includes('\\n\\n'); // 检查是否有段落分隔\n      \n      const qualityScore = (\n        (wordCount >= 500 && wordCount <= 1200 ? 30 : 0) + // 字数合理\n        (hasTitle ? 20 : 0) + // 有标题\n        (hasStructure ? 25 : 0) + // 有结构\n        (content.length > 100 ? 25 : 0) // 内容充实\n      );\n      \n      return {\n        content: content,\n        qualityScore: qualityScore,\n        wordCount: wordCount,\n        isQualified: qualityScore >= 70,\n        metadata: {\n          hasTitle: hasTitle,\n          hasStructure: hasStructure,\n          checkedAt: new Date().toISOString()\n        }\n      };\n    "
+      },
+      "originalSettings": {
+        "code": "\n      const content = inputs.response;\n      \n      // 简单的内容质量检查\n      const wordCount = content.split(/\\s+/).length;\n      const hasTitle = content.includes('#') || content.split('\\n')[0].length < 100;\n      const hasStructure = content.includes('\\n\\n'); // 检查是否有段落分隔\n      \n      const qualityScore = (\n        (wordCount >= 500 && wordCount <= 1200 ? 30 : 0) + // 字数合理\n        (hasTitle ? 20 : 0) + // 有标题\n        (hasStructure ? 25 : 0) + // 有结构\n        (content.length > 100 ? 25 : 0) // 内容充实\n      );\n      \n      return {\n        content: content,\n        qualityScore: qualityScore,\n        wordCount: wordCount,\n        isQualified: qualityScore >= 70,\n        metadata: {\n          hasTitle: hasTitle,\n          hasStructure: hasStructure,\n          checkedAt: new Date().toISOString()\n        }\n      };\n    "
+      }
+    },
+    {
+      "config": {
+        "id": "publish-condition",
+        "name": "条件判断",
+        "type": "condition"
+      },
+      "settings": {
+        "conditionType": "javascript",
+        "condition": "inputs.isQualified === true && inputs.qualityScore >= 70"
+      },
+      "originalSettings": {
+        "conditionType": "javascript",
+        "condition": "inputs.isQualified === true && inputs.qualityScore >= 70"
+      }
+    },
+    {
+      "config": {
+        "id": "publish-blog",
+        "name": "HTTP请求",
+        "type": "http-request"
+      },
+      "settings": {
+        "url": "https://api.medium.com/v1/users/{{$settings.mediumUserId}}/posts",
+        "method": "POST",
+        "headers": {
+          "Authorization": "Bearer {{$settings.mediumAccessToken}}",
+          "Content-Type": "application/json",
+          "Accept": "application/json"
+        },
+        "timeout": 30000,
+        "bodyTemplate": "{\n      \"title\": \"{{inputs.selectedTopic.name}} - 科技前沿探索\",\n      \"contentFormat\": \"markdown\",\n      \"content\": \"{{inputs.content}}\",\n      \"tags\": [\"科技\", \"创新\", \"前沿\"],\n      \"publishStatus\": \"draft\"\n    }"
+      },
+      "originalSettings": {
+        "url": "https://api.medium.com/v1/users/{{$settings.mediumUserId}}/posts",
+        "method": "POST",
+        "headers": {
+          "Authorization": "Bearer {{$settings.mediumAccessToken}}",
+          "Content-Type": "application/json",
+          "Accept": "application/json"
+        },
+        "timeout": 30000,
+        "bodyTemplate": "{\n      \"title\": \"{{inputs.selectedTopic.name}} - 科技前沿探索\",\n      \"contentFormat\": \"markdown\",\n      \"content\": \"{{inputs.content}}\",\n      \"tags\": [\"科技\", \"创新\", \"前沿\"],\n      \"publishStatus\": \"draft\"\n    }"
+      }
+    }
+  ],
+  "connections": [
+    {
+      "id": "trigger-to-trends",
+      "sourceNodeId": "daily-trigger",
+      "targetNodeId": "fetch-trends"
+    },
+    {
+      "id": "trends-to-process",
+      "sourceNodeId": "fetch-trends",
+      "targetNodeId": "process-trends"
+    },
+    {
+      "id": "process-to-generate",
+      "sourceNodeId": "process-trends",
+      "targetNodeId": "content-generator"
+    },
+    {
+      "id": "generate-to-check",
+      "sourceNodeId": "content-generator",
+      "targetNodeId": "quality-check"
+    },
+    {
+      "id": "check-to-condition",
+      "sourceNodeId": "quality-check",
+      "targetNodeId": "publish-condition"
+    },
+    {
+      "id": "condition-to-publish",
+      "sourceNodeId": "publish-condition",
+      "targetNodeId": "publish-blog"
+    }
+  ],
+  "metadata": {
+    "version": "1.0.0",
+    "createdAt": "2024-12-19T10:00:00.000Z",
+    "updatedAt": "2024-12-19T10:00:00.000Z",
+    "description": "自动获取热门话题，使用AI生成高质量内容，经过质量检查后发布到博客平台。包含趋势分析、内容生成、质量控制和自动发布功能。"
+  }
+}

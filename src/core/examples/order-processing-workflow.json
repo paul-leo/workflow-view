@@ -1,0 +1,233 @@
+{
+  "config": {
+    "id": "order-processing-workflow",
+    "name": "电商订单处理工作流"
+  },
+  "nodes": [
+    {
+      "config": {
+        "id": "order-check-trigger",
+        "name": "定时触发器",
+        "type": "timer-trigger"
+      },
+      "settings": {
+        "interval": 300000
+      },
+      "originalSettings": {
+        "interval": 300000
+      }
+    },
+    {
+      "config": {
+        "id": "fetch-new-orders",
+        "name": "HTTP请求",
+        "type": "http-request"
+      },
+      "settings": {
+        "url": "https://api.shopify.com/admin/api/2023-10/orders.json",
+        "method": "GET",
+        "headers": {
+          "X-Shopify-Access-Token": "{{$settings.shopifyAccessToken}}",
+          "Content-Type": "application/json"
+        },
+        "timeout": 20000
+      },
+      "originalSettings": {
+        "url": "https://api.shopify.com/admin/api/2023-10/orders.json",
+        "method": "GET",
+        "headers": {
+          "X-Shopify-Access-Token": "{{$settings.shopifyAccessToken}}",
+          "Content-Type": "application/json"
+        },
+        "timeout": 20000
+      }
+    },
+    {
+      "config": {
+        "id": "process-orders",
+        "name": "代码执行",
+        "type": "code"
+      },
+      "settings": {
+        "code": "\n      const orders = inputs.data.orders || [];\n      const processedOrders = [];\n      \n      for (const order of orders) {\n        // 只处理新订单（未处理的）\n        if (order.fulfillment_status === null && order.financial_status === 'paid') {\n          const processedOrder = {\n            id: order.id,\n            orderNumber: order.order_number,\n            customerInfo: {\n              name: `${order.customer.first_name} ${order.customer.last_name}`,\n              email: order.customer.email,\n              phone: order.customer.phone\n            },\n            shippingAddress: order.shipping_address,\n            items: order.line_items.map(item => ({\n              productId: item.product_id,\n              variantId: item.variant_id,\n              title: item.title,\n              quantity: item.quantity,\n              price: parseFloat(item.price),\n              sku: item.sku\n            })),\n            totalAmount: parseFloat(order.total_price),\n            currency: order.currency,\n            createdAt: order.created_at,\n            tags: order.tags ? order.tags.split(', ') : []\n          };\n          \n          // 订单风险评估\n          let riskScore = 0;\n          if (processedOrder.totalAmount > 1000) riskScore += 20;\n          if (!processedOrder.customerInfo.phone) riskScore += 10;\n          if (processedOrder.shippingAddress.country !== 'US') riskScore += 15;\n          \n          processedOrder.riskAssessment = {\n            score: riskScore,\n            level: riskScore > 30 ? 'high' : riskScore > 15 ? 'medium' : 'low',\n            needsReview: riskScore > 30\n          };\n          \n          processedOrders.push(processedOrder);\n        }\n      }\n      \n      return {\n        newOrders: processedOrders,\n        totalNewOrders: processedOrders.length,\n        highRiskOrders: processedOrders.filter(o => o.riskAssessment.level === 'high').length,\n        totalValue: processedOrders.reduce((sum, o) => sum + o.totalAmount, 0)\n      };\n    "
+      },
+      "originalSettings": {
+        "code": "\n      const orders = inputs.data.orders || [];\n      const processedOrders = [];\n      \n      for (const order of orders) {\n        // 只处理新订单（未处理的）\n        if (order.fulfillment_status === null && order.financial_status === 'paid') {\n          const processedOrder = {\n            id: order.id,\n            orderNumber: order.order_number,\n            customerInfo: {\n              name: `${order.customer.first_name} ${order.customer.last_name}`,\n              email: order.customer.email,\n              phone: order.customer.phone\n            },\n            shippingAddress: order.shipping_address,\n            items: order.line_items.map(item => ({\n              productId: item.product_id,\n              variantId: item.variant_id,\n              title: item.title,\n              quantity: item.quantity,\n              price: parseFloat(item.price),\n              sku: item.sku\n            })),\n            totalAmount: parseFloat(order.total_price),\n            currency: order.currency,\n            createdAt: order.created_at,\n            tags: order.tags ? order.tags.split(', ') : []\n          };\n          \n          // 订单风险评估\n          let riskScore = 0;\n          if (processedOrder.totalAmount > 1000) riskScore += 20;\n          if (!processedOrder.customerInfo.phone) riskScore += 10;\n          if (processedOrder.shippingAddress.country !== 'US') riskScore += 15;\n          \n          processedOrder.riskAssessment = {\n            score: riskScore,\n            level: riskScore > 30 ? 'high' : riskScore > 15 ? 'medium' : 'low',\n            needsReview: riskScore > 30\n          };\n          \n          processedOrders.push(processedOrder);\n        }\n      }\n      \n      return {\n        newOrders: processedOrders,\n        totalNewOrders: processedOrders.length,\n        highRiskOrders: processedOrders.filter(o => o.riskAssessment.level === 'high').length,\n        totalValue: processedOrders.reduce((sum, o) => sum + o.totalAmount, 0)\n      };\n    "
+      }
+    },
+    {
+      "config": {
+        "id": "risk-check-condition",
+        "name": "条件判断",
+        "type": "condition"
+      },
+      "settings": {
+        "conditionType": "javascript",
+        "condition": "inputs.highRiskOrders > 0"
+      },
+      "originalSettings": {
+        "conditionType": "javascript",
+        "condition": "inputs.highRiskOrders > 0"
+      }
+    },
+    {
+      "config": {
+        "id": "risk-analysis",
+        "name": "AI Agent",
+        "type": "agent"
+      },
+      "settings": {
+        "systemPrompt": "你是一个电商风险管理专家。请分析提供的订单数据，评估潜在风险并提供处理建议。\n\n    分析要点：\n    1. 订单金额异常\n    2. 客户信息完整性\n    3. 地理位置风险\n    4. 购买模式分析\n    5. 防欺诈建议\n    \n    请提供简洁明确的风险评估和处理建议。",
+        "model": "gpt-4"
+      },
+      "originalSettings": {
+        "systemPrompt": "你是一个电商风险管理专家。请分析提供的订单数据，评估潜在风险并提供处理建议。\n\n    分析要点：\n    1. 订单金额异常\n    2. 客户信息完整性\n    3. 地理位置风险\n    4. 购买模式分析\n    5. 防欺诈建议\n    \n    请提供简洁明确的风险评估和处理建议。",
+        "model": "gpt-4"
+      }
+    },
+    {
+      "config": {
+        "id": "inventory-check",
+        "name": "HTTP请求",
+        "type": "http-request"
+      },
+      "settings": {
+        "url": "https://api.inventory-system.com/v1/check-availability",
+        "method": "POST",
+        "headers": {
+          "Authorization": "Bearer {{$settings.inventoryApiKey}}",
+          "Content-Type": "application/json"
+        },
+        "timeout": 15000,
+        "bodyTemplate": "{\n      \"orders\": {{JSON.stringify(inputs.newOrders)}},\n      \"warehouse\": \"main\"\n    }"
+      },
+      "originalSettings": {
+        "url": "https://api.inventory-system.com/v1/check-availability",
+        "method": "POST",
+        "headers": {
+          "Authorization": "Bearer {{$settings.inventoryApiKey}}",
+          "Content-Type": "application/json"
+        },
+        "timeout": 15000,
+        "bodyTemplate": "{\n      \"orders\": {{JSON.stringify(inputs.newOrders)}},\n      \"warehouse\": \"main\"\n    }"
+      }
+    },
+    {
+      "config": {
+        "id": "inventory-condition",
+        "name": "条件判断",
+        "type": "condition"
+      },
+      "settings": {
+        "conditionType": "javascript",
+        "condition": "inputs.allItemsAvailable === true"
+      },
+      "originalSettings": {
+        "conditionType": "javascript",
+        "condition": "inputs.allItemsAvailable === true"
+      }
+    },
+    {
+      "config": {
+        "id": "create-fulfillment",
+        "name": "HTTP请求",
+        "type": "http-request"
+      },
+      "settings": {
+        "url": "https://api.shopify.com/admin/api/2023-10/orders/{{$input.orderId}}/fulfillments.json",
+        "method": "POST",
+        "headers": {
+          "X-Shopify-Access-Token": "{{$settings.shopifyAccessToken}}",
+          "Content-Type": "application/json"
+        },
+        "timeout": 20000,
+        "bodyTemplate": "{\n      \"fulfillment\": {\n        \"location_id\": {{$settings.warehouseLocationId}},\n        \"tracking_number\": \"{{inputs.trackingNumber}}\",\n        \"tracking_company\": \"{{inputs.carrier}}\",\n        \"notify_customer\": true\n      }\n    }"
+      },
+      "originalSettings": {
+        "url": "https://api.shopify.com/admin/api/2023-10/orders/{{$input.orderId}}/fulfillments.json",
+        "method": "POST",
+        "headers": {
+          "X-Shopify-Access-Token": "{{$settings.shopifyAccessToken}}",
+          "Content-Type": "application/json"
+        },
+        "timeout": 20000,
+        "bodyTemplate": "{\n      \"fulfillment\": {\n        \"location_id\": {{$settings.warehouseLocationId}},\n        \"tracking_number\": \"{{inputs.trackingNumber}}\",\n        \"tracking_company\": \"{{inputs.carrier}}\",\n        \"notify_customer\": true\n      }\n    }"
+      }
+    },
+    {
+      "config": {
+        "id": "send-customer-notification",
+        "name": "HTTP请求",
+        "type": "http-request"
+      },
+      "settings": {
+        "url": "https://api.sendgrid.com/v3/mail/send",
+        "method": "POST",
+        "headers": {
+          "Authorization": "Bearer {{$settings.sendgridApiKey}}",
+          "Content-Type": "application/json"
+        },
+        "timeout": 10000,
+        "bodyTemplate": "{\n      \"personalizations\": [\n        {\n          \"to\": [{\"email\": \"{{inputs.customerInfo.email}}\"}],\n          \"subject\": \"您的订单 #{{inputs.orderNumber}} 已发货\"\n        }\n      ],\n      \"from\": {\"email\": \"orders@yourstore.com\", \"name\": \"Your Store\"},\n      \"content\": [\n        {\n          \"type\": \"text/html\",\n          \"value\": \"<h2>订单发货通知</h2><p>亲爱的 {{inputs.customerInfo.name}}，</p><p>您的订单 #{{inputs.orderNumber}} 已经发货，预计3-5个工作日内送达。</p><p>追踪号码：{{inputs.trackingNumber}}</p><p>感谢您的购买！</p>\"\n        }\n      ]\n    }"
+      },
+      "originalSettings": {
+        "url": "https://api.sendgrid.com/v3/mail/send",
+        "method": "POST",
+        "headers": {
+          "Authorization": "Bearer {{$settings.sendgridApiKey}}",
+          "Content-Type": "application/json"
+        },
+        "timeout": 10000,
+        "bodyTemplate": "{\n      \"personalizations\": [\n        {\n          \"to\": [{\"email\": \"{{inputs.customerInfo.email}}\"}],\n          \"subject\": \"您的订单 #{{inputs.orderNumber}} 已发货\"\n        }\n      ],\n      \"from\": {\"email\": \"orders@yourstore.com\", \"name\": \"Your Store\"},\n      \"content\": [\n        {\n          \"type\": \"text/html\",\n          \"value\": \"<h2>订单发货通知</h2><p>亲爱的 {{inputs.customerInfo.name}}，</p><p>您的订单 #{{inputs.orderNumber}} 已经发货，预计3-5个工作日内送达。</p><p>追踪号码：{{inputs.trackingNumber}}</p><p>感谢您的购买！</p>\"\n        }\n      ]\n    }"
+      }
+    }
+  ],
+  "connections": [
+    {
+      "id": "trigger-to-fetch",
+      "sourceNodeId": "order-check-trigger",
+      "targetNodeId": "fetch-new-orders"
+    },
+    {
+      "id": "fetch-to-process",
+      "sourceNodeId": "fetch-new-orders",
+      "targetNodeId": "process-orders"
+    },
+    {
+      "id": "process-to-risk-check",
+      "sourceNodeId": "process-orders",
+      "targetNodeId": "risk-check-condition"
+    },
+    {
+      "id": "risk-check-to-analysis",
+      "sourceNodeId": "risk-check-condition",
+      "targetNodeId": "risk-analysis"
+    },
+    {
+      "id": "process-to-inventory",
+      "sourceNodeId": "process-orders",
+      "targetNodeId": "inventory-check"
+    },
+    {
+      "id": "inventory-to-condition",
+      "sourceNodeId": "inventory-check",
+      "targetNodeId": "inventory-condition"
+    },
+    {
+      "id": "condition-to-fulfillment",
+      "sourceNodeId": "inventory-condition",
+      "targetNodeId": "create-fulfillment"
+    },
+    {
+      "id": "fulfillment-to-notification",
+      "sourceNodeId": "create-fulfillment",
+      "targetNodeId": "send-customer-notification"
+    }
+  ],
+  "metadata": {
+    "version": "1.0.0",
+    "createdAt": "2024-12-19T10:00:00.000Z",
+    "updatedAt": "2024-12-19T10:00:00.000Z",
+    "description": "自动化电商订单处理流程，包含订单获取、风险评估、库存检查、自动发货和客户通知。支持风险订单的AI分析和智能决策。"
+  }
+}

@@ -50,6 +50,9 @@ export class BaseWorkflow {
       // 收集输入数据
       const inputs = this.collectNodeInputs(nodeId, context);
       
+      // 解析动态设置
+      this.resolveNodeSettings(nodeId, inputs, context);
+      
       // 执行节点
       const result = await node.execute(inputs, context);
       results.set(nodeId, result);
@@ -78,5 +81,19 @@ export class BaseWorkflow {
     }
     
     return inputs;
+  }
+
+  // 解析节点的动态设置
+  private resolveNodeSettings(nodeId: string, inputs: Record<string, unknown>, context: NodeExecutionContext): void {
+    const node = this.nodes.get(nodeId);
+    if (!node) return;
+
+    // 调用节点的动态设置解析方法
+    try {
+      const resolvedSettings = node.resolveDynamicSettings(inputs, context);
+      node.settings = resolvedSettings;
+    } catch (error) {
+      console.warn(`Failed to resolve dynamic settings for node ${nodeId}:`, error);
+    }
   }
 }

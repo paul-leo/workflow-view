@@ -1,0 +1,147 @@
+{
+  "config": {
+    "id": "data-scraping-workflow",
+    "name": "数据抓取与分析工作流"
+  },
+  "nodes": [
+    {
+      "config": {
+        "id": "timer-trigger",
+        "name": "定时触发器",
+        "type": "timer-trigger"
+      },
+      "settings": {
+        "interval": 3600000
+      },
+      "originalSettings": {
+        "interval": 3600000
+      }
+    },
+    {
+      "config": {
+        "id": "fetch-api-data",
+        "name": "HTTP请求",
+        "type": "http-request"
+      },
+      "settings": {
+        "url": "https://api.coindesk.com/v1/bpi/currentprice.json",
+        "method": "GET",
+        "headers": {
+          "User-Agent": "DataScrapingBot/1.0",
+          "Accept": "application/json"
+        },
+        "timeout": 30000
+      },
+      "originalSettings": {
+        "url": "https://api.coindesk.com/v1/bpi/currentprice.json",
+        "method": "GET",
+        "headers": {
+          "User-Agent": "DataScrapingBot/1.0",
+          "Accept": "application/json"
+        },
+        "timeout": 30000
+      }
+    },
+    {
+      "config": {
+        "id": "process-data",
+        "name": "代码执行",
+        "type": "code"
+      },
+      "settings": {
+        "code": "\n      // 处理比特币价格数据\n      const data = inputs.data;\n      const bpi = data.bpi;\n      \n      const processedData = {\n        timestamp: new Date().toISOString(),\n        prices: {\n          usd: parseFloat(bpi.USD.rate.replace(',', '')),\n          eur: parseFloat(bpi.EUR.rate.replace(',', '')),\n          gbp: parseFloat(bpi.GBP.rate.replace(',', ''))\n        },\n        lastUpdated: data.time.updated,\n        disclaimer: data.disclaimer\n      };\n      \n      // 计算价格趋势（模拟）\n      const previousPrice = 45000; // 模拟前一次价格\n      const currentPrice = processedData.prices.usd;\n      const priceChange = ((currentPrice - previousPrice) / previousPrice * 100).toFixed(2);\n      \n      processedData.analysis = {\n        priceChange: parseFloat(priceChange),\n        trend: priceChange > 0 ? 'up' : 'down',\n        volatility: Math.abs(priceChange) > 5 ? 'high' : 'normal'\n      };\n      \n      return {\n        processedData,\n        shouldAlert: Math.abs(priceChange) > 10\n      };\n    "
+      },
+      "originalSettings": {
+        "code": "\n      // 处理比特币价格数据\n      const data = inputs.data;\n      const bpi = data.bpi;\n      \n      const processedData = {\n        timestamp: new Date().toISOString(),\n        prices: {\n          usd: parseFloat(bpi.USD.rate.replace(',', '')),\n          eur: parseFloat(bpi.EUR.rate.replace(',', '')),\n          gbp: parseFloat(bpi.GBP.rate.replace(',', ''))\n        },\n        lastUpdated: data.time.updated,\n        disclaimer: data.disclaimer\n      };\n      \n      // 计算价格趋势（模拟）\n      const previousPrice = 45000; // 模拟前一次价格\n      const currentPrice = processedData.prices.usd;\n      const priceChange = ((currentPrice - previousPrice) / previousPrice * 100).toFixed(2);\n      \n      processedData.analysis = {\n        priceChange: parseFloat(priceChange),\n        trend: priceChange > 0 ? 'up' : 'down',\n        volatility: Math.abs(priceChange) > 5 ? 'high' : 'normal'\n      };\n      \n      return {\n        processedData,\n        shouldAlert: Math.abs(priceChange) > 10\n      };\n    "
+      }
+    },
+    {
+      "config": {
+        "id": "price-alert-condition",
+        "name": "条件判断",
+        "type": "condition"
+      },
+      "settings": {
+        "conditionType": "javascript",
+        "condition": "inputs.shouldAlert === true"
+      },
+      "originalSettings": {
+        "conditionType": "javascript",
+        "condition": "inputs.shouldAlert === true"
+      }
+    },
+    {
+      "config": {
+        "id": "market-analysis",
+        "name": "AI Agent",
+        "type": "agent"
+      },
+      "settings": {
+        "systemPrompt": "你是一个专业的加密货币市场分析师。请基于提供的比特币价格数据生成简洁的市场分析报告。\n    \n    报告应该包括：\n    1. 当前价格概况\n    2. 价格变化趋势分析\n    3. 市场情绪评估\n    4. 简短的投资建议（仅供参考）\n    \n    请保持专业、客观的分析风格。",
+        "model": "gpt-4"
+      },
+      "originalSettings": {
+        "systemPrompt": "你是一个专业的加密货币市场分析师。请基于提供的比特币价格数据生成简洁的市场分析报告。\n    \n    报告应该包括：\n    1. 当前价格概况\n    2. 价格变化趋势分析\n    3. 市场情绪评估\n    4. 简短的投资建议（仅供参考）\n    \n    请保持专业、客观的分析风格。",
+        "model": "gpt-4"
+      }
+    },
+    {
+      "config": {
+        "id": "send-notification",
+        "name": "HTTP请求",
+        "type": "http-request"
+      },
+      "settings": {
+        "url": "https://hooks.slack.com/services/YOUR/SLACK/WEBHOOK",
+        "method": "POST",
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "timeout": 10000,
+        "bodyTemplate": "{\n      \"text\": \"🚨 比特币价格警报\",\n      \"attachments\": [\n        {\n          \"color\": \"{{inputs.analysis.trend === 'up' ? 'good' : 'danger'}}\",\n          \"fields\": [\n            {\n              \"title\": \"当前价格\",\n              \"value\": \"${{inputs.processedData.prices.usd}}\",\n              \"short\": true\n            },\n            {\n              \"title\": \"价格变化\",\n              \"value\": \"{{inputs.analysis.priceChange}}%\",\n              \"short\": true\n            },\n            {\n              \"title\": \"AI分析\",\n              \"value\": \"{{inputs.aiAnalysis}}\",\n              \"short\": false\n            }\n          ]\n        }\n      ]\n    }"
+      },
+      "originalSettings": {
+        "url": "https://hooks.slack.com/services/YOUR/SLACK/WEBHOOK",
+        "method": "POST",
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "timeout": 10000,
+        "bodyTemplate": "{\n      \"text\": \"🚨 比特币价格警报\",\n      \"attachments\": [\n        {\n          \"color\": \"{{inputs.analysis.trend === 'up' ? 'good' : 'danger'}}\",\n          \"fields\": [\n            {\n              \"title\": \"当前价格\",\n              \"value\": \"${{inputs.processedData.prices.usd}}\",\n              \"short\": true\n            },\n            {\n              \"title\": \"价格变化\",\n              \"value\": \"{{inputs.analysis.priceChange}}%\",\n              \"short\": true\n            },\n            {\n              \"title\": \"AI分析\",\n              \"value\": \"{{inputs.aiAnalysis}}\",\n              \"short\": false\n            }\n          ]\n        }\n      ]\n    }"
+      }
+    }
+  ],
+  "connections": [
+    {
+      "id": "timer-to-fetch",
+      "sourceNodeId": "timer-trigger",
+      "targetNodeId": "fetch-api-data"
+    },
+    {
+      "id": "fetch-to-process",
+      "sourceNodeId": "fetch-api-data",
+      "targetNodeId": "process-data"
+    },
+    {
+      "id": "process-to-condition",
+      "sourceNodeId": "process-data",
+      "targetNodeId": "price-alert-condition"
+    },
+    {
+      "id": "condition-to-ai",
+      "sourceNodeId": "price-alert-condition",
+      "targetNodeId": "market-analysis"
+    },
+    {
+      "id": "ai-to-notification",
+      "sourceNodeId": "market-analysis",
+      "targetNodeId": "send-notification"
+    }
+  ],
+  "metadata": {
+    "version": "1.0.0",
+    "createdAt": "2024-12-19T10:00:00.000Z",
+    "updatedAt": "2024-12-19T10:00:00.000Z",
+    "description": "自动抓取比特币价格数据，进行分析并在价格波动超过阈值时发送警报通知。包含数据处理、AI分析和通知发送功能。"
+  }
+}
