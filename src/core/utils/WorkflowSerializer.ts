@@ -145,7 +145,8 @@ export class WorkflowSerializer {
 
         // 恢复原始设置（包含表达式）
         if (serializedNode.originalSettings) {
-          (node as any).originalSettings = this.deepClone(serializedNode.originalSettings);
+          (node as unknown as { originalSettings: Record<string, unknown> }).originalSettings =
+            this.deepClone(serializedNode.originalSettings);
         }
 
         workflow.addNode(node);
@@ -316,16 +317,16 @@ export class WorkflowSerializer {
     if (json1.metadata) {
       json1.metadata = {
         ...json1.metadata,
-        createdAt: undefined,
-        updatedAt: undefined
-      } as typeof json1.metadata;
+        createdAt: json1.metadata.createdAt ?? '',
+        updatedAt: json1.metadata.updatedAt ?? ''
+      };
     }
     if (json2.metadata) {
       json2.metadata = {
         ...json2.metadata,
-        createdAt: undefined,
-        updatedAt: undefined
-      } as typeof json2.metadata;
+        createdAt: json2.metadata.createdAt ?? '',
+        updatedAt: json2.metadata.updatedAt ?? ''
+      };
     }
 
     return JSON.stringify(json1) === JSON.stringify(json2);
