@@ -7,146 +7,278 @@
   },
   "nodes": [
     {
-      "id": "trigger-1",
+      "id": "form-trigger",
       "config": {
-        "id": "trigger-1",
-        "name": "用户输入触发",
+        "id": "form-trigger",
+        "name": "On 'Create User' form submission",
         "type": "timer-trigger"
       },
       "settings": {
         "interval": 0,
         "triggerOnce": true,
-        "message": "请帮我计算 15 * 8 + 32，然后搜索关于'人工智能'的信息，最后处理文本'Hello World'"
+        "formData": {
+          "name": "John Doe",
+          "email": "john@example.com",
+          "role": "manager"
+        }
       },
-      "position": { "x": 100, "y": 200 }
+      "position": { "x": 50, "y": 300 }
     },
     {
-      "id": "agent-1",
+      "id": "ai-agent",
       "config": {
-        "id": "agent-1",
-        "name": "智能助手",
+        "id": "ai-agent",
+        "name": "AI Agent",
         "type": "agent"
       },
       "settings": {
-        "systemPrompt": "你是一个智能助手，可以使用多种工具来帮助用户完成任务。根据用户的请求，选择合适的工具并提供详细的回复。",
+        "systemPrompt": "You are a smart assistant that processes user data and makes intelligent decisions.",
         "model": "gpt-4",
         "enableTools": true,
-        "maxToolCalls": 10
+        "maxToolCalls": 5
       },
       "tools": [
         {
-          "id": "calculator",
-          "name": "计算器",
-          "description": "执行数学运算",
-          "category": "数学"
+          "id": "chat-model",
+          "name": "Chat Model",
+          "description": "AI chat processing",
+          "category": "AI"
         },
         {
-          "id": "web-search",
-          "name": "网络搜索",
-          "description": "搜索网络信息",
-          "category": "搜索"
+          "id": "memory",
+          "name": "Memory",
+          "description": "Context memory storage",
+          "category": "Storage"
         },
         {
-          "id": "text-processor",
-          "name": "文本处理器",
-          "description": "处理和分析文本",
-          "category": "文本"
+          "id": "tool",
+          "name": "Tool",
+          "description": "General purpose tool",
+          "category": "Utility"
         }
       ],
-      "position": { "x": 400, "y": 200 }
+      "position": { "x": 400, "y": 300 }
     },
     {
-      "id": "condition-1",
+      "id": "manager-check",
       "config": {
-        "id": "condition-1",
-        "name": "结果检查",
+        "id": "manager-check",
+        "name": "Is manager?",
         "type": "condition"
       },
       "settings": {
         "condition": {
           "type": "simple",
-          "field": "toolsUsed",
-          "operator": "gt",
-          "value": 0
+          "field": "role",
+          "operator": "eq",
+          "value": "manager"
         }
       },
-      "position": { "x": 700, "y": 200 }
+      "position": { "x": 700, "y": 300 }
     },
     {
-      "id": "success-output",
+      "id": "add-to-channel",
       "config": {
-        "id": "success-output",
-        "name": "成功输出",
+        "id": "add-to-channel",
+        "name": "Add to channel",
         "type": "http-request"
       },
       "settings": {
-        "url": "https://api.example.com/results",
+        "url": "https://api.slack.com/channels/invite",
         "method": "POST",
+        "headers": {
+          "Authorization": "Bearer {{slack.token}}",
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "channel": "{{channel.id}}",
+          "user": "{{user.id}}",
+          "invite": "channel"
+        }
+      },
+      "position": { "x": 1000, "y": 200 }
+    },
+    {
+      "id": "update-profile",
+      "config": {
+        "id": "update-profile",
+        "name": "Update profile",
+        "type": "http-request"
+      },
+      "settings": {
+        "url": "https://api.internal.com/users/profile",
+        "method": "PUT",
         "headers": {
           "Content-Type": "application/json"
         },
         "body": {
-          "status": "success",
-          "message": "Agent 成功使用工具完成任务",
-          "data": "{{agent-1.response}}"
+          "updateProfile": "user",
+          "userData": "{{form-trigger.formData}}"
         }
       },
-      "position": { "x": 1000, "y": 150 }
+      "position": { "x": 1000, "y": 400 }
     },
     {
-      "id": "fallback-output",
+      "id": "anthropic-model",
       "config": {
-        "id": "fallback-output",
-        "name": "备用输出",
+        "id": "anthropic-model",
+        "name": "Anthropic Chat Model",
+        "type": "code"
+      },
+      "settings": {
+        "code": "// Initialize Anthropic Chat Model\nconst anthropic = new Anthropic({\n  apiKey: process.env.ANTHROPIC_API_KEY\n});\n\nconst response = await anthropic.messages.create({\n  model: 'claude-3-sonnet-20240229',\n  max_tokens: 2000,\n  messages: [{ role: 'user', content: input.message }]\n});\n\nreturn { response: response.content[0].text };",
+        "language": "javascript"
+      },
+      "position": { "x": 200, "y": 500 }
+    },
+    {
+      "id": "postgres-memory",
+      "config": {
+        "id": "postgres-memory",
+        "name": "Postgres Chat Memory",
+        "type": "code"
+      },
+      "settings": {
+        "code": "// Store chat history in PostgreSQL\nconst { Pool } = require('pg');\nconst pool = new Pool({\n  connectionString: 'postgresql://localhost:5432/chat'\n});\n\nconst client = await pool.connect();\ntry {\n  await client.query(\n    'INSERT INTO chat_history (user_id, message, timestamp) VALUES ($1, $2, $3)',\n    [input.userId, input.message, new Date()]\n  );\n  return { success: true, stored: true };\n} finally {\n  client.release();\n}",
+        "language": "javascript"
+      },
+      "position": { "x": 400, "y": 500 }
+    },
+    {
+      "id": "microsoft-entra",
+      "config": {
+        "id": "microsoft-entra",
+        "name": "Microsoft Entra ID",
         "type": "http-request"
       },
       "settings": {
-        "url": "https://api.example.com/fallback",
+        "url": "https://graph.microsoft.com/v1.0/users",
+        "method": "GET",
+        "headers": {
+          "Authorization": "Bearer {{azure.accessToken}}",
+          "Content-Type": "application/json"
+        },
+        "params": {
+          "$select": "id,displayName,mail,userPrincipalName"
+        }
+      },
+      "position": { "x": 600, "y": 500 }
+    },
+    {
+      "id": "jira-software",
+      "config": {
+        "id": "jira-software",
+        "name": "Jira Software",
+        "type": "http-request"
+      },
+      "settings": {
+        "url": "https://company.atlassian.net/rest/api/3/user",
         "method": "POST",
         "headers": {
+          "Authorization": "Basic {{jira.auth}}",
           "Content-Type": "application/json"
         },
         "body": {
-          "status": "fallback",
-          "message": "Agent 未使用工具，返回普通回复",
-          "data": "{{agent-1.response}}"
+          "emailAddress": "{{user.email}}",
+          "displayName": "{{user.name}}",
+          "products": ["jira-software"]
         }
       },
-      "position": { "x": 1000, "y": 250 }
+      "position": { "x": 800, "y": 500 }
+    },
+    {
+      "id": "data-processor",
+      "config": {
+        "id": "data-processor",
+        "name": "Data Processing",
+        "type": "code"
+      },
+      "settings": {
+        "code": "// Process and validate user data\nconst userData = input.formData;\n\n// Validate email format\nconst emailRegex = /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/;\nif (!emailRegex.test(userData.email)) {\n  throw new Error('Invalid email format');\n}\n\n// Transform data\nconst processedData = {\n  ...userData,\n  email: userData.email.toLowerCase(),\n  name: userData.name.trim(),\n  createdAt: new Date().toISOString(),\n  isManager: userData.role === 'manager'\n};\n\nreturn { processedData };",
+        "language": "javascript"
+      },
+      "position": { "x": 250, "y": 300 }
+    },
+    {
+      "id": "notification-sender",
+      "config": {
+        "id": "notification-sender",
+        "name": "Send Notification",
+        "type": "code"
+      },
+      "settings": {
+        "code": "// Send notification based on user role\nconst { isManager, name, email } = input.processedData;\n\nconst notificationMessage = isManager \n  ? `Welcome ${name}! You have been added to the management channel.`\n  : `Hello ${name}! Your profile has been updated successfully.`;\n\n// Simulate sending notification\nconsole.log(`Sending notification to ${email}: ${notificationMessage}`);\n\nreturn {\n  notificationSent: true,\n  message: notificationMessage,\n  recipient: email\n};",
+        "language": "javascript"
+      },
+      "position": { "x": 1200, "y": 300 }
     }
   ],
   "connections": [
     {
-      "id": "conn-1",
-      "sourceNodeId": "trigger-1",
-      "sourcePortId": "output",
-      "targetNodeId": "agent-1",
-      "targetPortId": "input",
-      "type": "data"
+      "id": "form-to-processor",
+      "sourceNodeId": "form-trigger",
+      "targetNodeId": "data-processor",
+      "branchIndex": 0
     },
     {
-      "id": "conn-2",
-      "sourceNodeId": "agent-1",
-      "sourcePortId": "output",
-      "targetNodeId": "condition-1",
-      "targetPortId": "input",
-      "type": "data"
+      "id": "processor-to-agent",
+      "sourceNodeId": "data-processor",
+      "targetNodeId": "ai-agent",
+      "branchIndex": 0
     },
     {
-      "id": "conn-3",
-      "sourceNodeId": "condition-1",
-      "sourcePortId": "true",
-      "targetNodeId": "success-output",
-      "targetPortId": "input",
-      "type": "data"
+      "id": "agent-to-condition",
+      "sourceNodeId": "ai-agent",
+      "targetNodeId": "manager-check",
+      "branchIndex": 0
     },
     {
-      "id": "conn-4",
-      "sourceNodeId": "condition-1",
-      "sourcePortId": "false",
-      "targetNodeId": "fallback-output",
-      "targetPortId": "input",
-      "type": "data"
+      "id": "manager-true-channel",
+      "sourceNodeId": "manager-check",
+      "targetNodeId": "add-to-channel",
+      "branchIndex": 0
+    },
+    {
+      "id": "manager-false-profile",
+      "sourceNodeId": "manager-check",
+      "targetNodeId": "update-profile",
+      "branchIndex": 1
+    },
+    {
+      "id": "channel-to-notification",
+      "sourceNodeId": "add-to-channel",
+      "targetNodeId": "notification-sender",
+      "branchIndex": 0
+    },
+    {
+      "id": "profile-to-notification",
+      "sourceNodeId": "update-profile",
+      "targetNodeId": "notification-sender",
+      "branchIndex": 0
+    },
+    {
+      "id": "agent-to-anthropic",
+      "sourceNodeId": "ai-agent",
+      "targetNodeId": "anthropic-model",
+      "branchIndex": 1
+    },
+    {
+      "id": "agent-to-memory",
+      "sourceNodeId": "ai-agent",
+      "targetNodeId": "postgres-memory",
+      "branchIndex": 2
+    },
+    {
+      "id": "agent-to-entra",
+      "sourceNodeId": "ai-agent",
+      "targetNodeId": "microsoft-entra",
+      "branchIndex": 3
+    },
+    {
+      "id": "agent-to-jira",
+      "sourceNodeId": "ai-agent",
+      "targetNodeId": "jira-software",
+      "branchIndex": 4
     }
   ]
 }

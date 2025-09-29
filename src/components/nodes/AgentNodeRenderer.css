@@ -1,14 +1,24 @@
 /* Agent Node Renderer 样式 */
 
-/* 紧凑的工具摘要 */
-.agent-tools-summary {
+/* 可折叠的工具区域 */
+.agent-tools-section {
+  margin-bottom: 8px;
+}
+
+.agent-tools-header {
   display: flex;
   align-items: center;
-  justify-content: center;
   gap: 4px;
+  padding: 4px 6px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
   font-size: 11px;
   color: #6B7280;
-  margin-bottom: 4px;
+}
+
+.agent-tools-header:hover {
+  background-color: #F9FAFB;
 }
 
 .tools-count {
@@ -17,6 +27,45 @@
   border-radius: 10px;
   font-size: 10px;
   font-weight: 500;
+  flex: 1;
+}
+
+.tools-toggle {
+  color: #9CA3AF;
+  transition: transform 0.2s ease;
+}
+
+.agent-tools-list {
+  margin-top: 4px;
+  padding-left: 16px;
+  border-left: 2px solid #F3F4F6;
+}
+
+.agent-tool-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 2px 4px;
+  margin-bottom: 2px;
+  border-radius: 3px;
+  font-size: 10px;
+}
+
+.agent-tool-item:hover {
+  background-color: #F9FAFB;
+}
+
+.agent-tool-name {
+  color: #374151;
+  font-weight: 500;
+}
+
+.agent-tool-category {
+  color: #9CA3AF;
+  font-size: 9px;
+  background: #F3F4F6;
+  padding: 1px 4px;
+  border-radius: 6px;
 }
 
 /* 紧凑的模型信息 */

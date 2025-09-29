@@ -1,5 +1,5 @@
-import React from 'react';
-import { Bot } from 'lucide-react';
+import React, { useState } from 'react';
+import { Bot, ChevronDown, ChevronRight, Wrench } from 'lucide-react';
 import { BaseNodeRenderer, type BaseNodeRendererProps } from './BaseNodeRenderer';
 import './AgentNodeRenderer.css';
 
@@ -41,19 +41,53 @@ export const AgentNodeRenderer: React.FC<AgentNodeRendererProps> = (props) => {
   const { data, ...restProps } = props;
   const tools = data.tools || [];
   const settings = data.settings || {};
+  
+  // 工具列表折叠状态
+  const [toolsExpanded, setToolsExpanded] = useState(false);
 
-  // 渲染节点内容
+  // 渲染工具列表
+  const renderToolsList = () => {
+    if (!settings.enableTools || tools.length === 0) return null;
+
+    return (
+      <div className="agent-tools-section">
+        <div 
+          className="agent-tools-header" 
+          onClick={() => setToolsExpanded(!toolsExpanded)}
+        >
+          <Wrench size={12} />
+          <span className="tools-count">{tools.length} Tools</span>
+          {toolsExpanded ? (
+            <ChevronDown size={12} className="tools-toggle" />
+          ) : (
+            <ChevronRight size={12} className="tools-toggle" />
+          )}
+        </div>
+        
+        {toolsExpanded && (
+          <div className="agent-tools-list">
+            {tools.map((tool) => (
+              <div key={tool.id} className="agent-tool-item">
+                <div className="agent-tool-name">{tool.name}</div>
+                {tool.category && (
+                  <div className="agent-tool-category">{tool.category}</div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  // 渲染节点内容（简化显示）
   const renderAgentContent = () => {
     return (
       <div className="agent-node-content">
-        {/* 简化的工具信息 */}
-        {settings.enableTools && tools.length > 0 && (
-          <div className="agent-tools-summary">
-            <span className="tools-count">{tools.length} Tools</span>
-          </div>
-        )}
+        {/* 工具列表（可折叠） */}
+        {renderToolsList()}
         
-        {/* 模型信息（简化显示） */}
+        {/* 模型信息 */}
         {settings.model && (
           <div className="agent-model-compact">
             {settings.model}
@@ -68,17 +102,26 @@ export const AgentNodeRenderer: React.FC<AgentNodeRendererProps> = (props) => {
       {...restProps}
       data={data}
       header={{
-        title: 'AI Agent',
-        icon: <Bot size={14} />,
-        backgroundColor: '#8B5CF6',
+        title: data.name,
+        icon: <Bot size={16} />,
+        backgroundColor: '#8B5CF6', // 紫色主题
         showStatus: true
       }}
       content={{
         customContent: renderAgentContent()
       }}
+      handles={{
+        showInput: true,
+        showOutput: true
+      }}
       styling={{
+        borderColor: props.selected ? '#8B5CF6' : '#E5E7EB',
+        backgroundColor: '#FFFFFF',
+        minWidth: 280,
+        maxWidth: 320,
         className: 'agent-node-renderer'
       }}
+      className={`agent-node ${props.className || ''}`}
     />
   );
 };
