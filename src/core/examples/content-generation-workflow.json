@@ -100,6 +100,19 @@
     },
     {
       "config": {
+        "id": "revise-content",
+        "name": "代码执行",
+        "type": "code"
+      },
+      "settings": {
+        "code": "\n      // 不达标时进行内容修订\n      const content = inputs.content;\n      return { content: content + '\\n\\n（已自动标注为需修订）' };\n    "
+      },
+      "originalSettings": {
+        "code": "\n      // 不达标时进行内容修订\n      const content = inputs.content;\n      return { content: content + '\\n\\n（已自动标注为需修订）' };\n    "
+      }
+    },
+    {
+      "config": {
         "id": "publish-blog",
         "name": "HTTP请求",
         "type": "http-request"
@@ -157,7 +170,14 @@
     {
       "id": "condition-to-publish",
       "sourceNodeId": "publish-condition",
-      "targetNodeId": "publish-blog"
+      "targetNodeId": "publish-blog",
+      "branchIndex": 1
+    },
+    {
+      "id": "condition-to-revise",
+      "sourceNodeId": "publish-condition",
+      "targetNodeId": "revise-content",
+      "branchIndex": 0
     }
   ],
   "metadata": {

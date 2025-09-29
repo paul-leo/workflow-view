@@ -72,6 +72,19 @@
     },
     {
       "config": {
+        "id": "normal-processing",
+        "name": "代码执行",
+        "type": "code"
+      },
+      "settings": {
+        "code": "\n      // 常规订单处理路径\n      return { continue: true };\n    "
+      },
+      "originalSettings": {
+        "code": "\n      // 常规订单处理路径\n      return { continue: true };\n    "
+      }
+    },
+    {
+      "config": {
         "id": "risk-analysis",
         "name": "AI Agent",
         "type": "agent"
@@ -201,7 +214,14 @@
     {
       "id": "risk-check-to-analysis",
       "sourceNodeId": "risk-check-condition",
-      "targetNodeId": "risk-analysis"
+      "targetNodeId": "risk-analysis",
+      "branchIndex": 1
+    },
+    {
+      "id": "risk-check-to-normal",
+      "sourceNodeId": "risk-check-condition",
+      "targetNodeId": "normal-processing",
+      "branchIndex": 0
     },
     {
       "id": "process-to-inventory",

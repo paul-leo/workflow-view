@@ -6,6 +6,8 @@ export interface WorkflowConnection {
   id: string;
   sourceNodeId: string;
   targetNodeId: string;
+  // 可选分支索引：当一个节点可以有多个“链接”时，用于区分第几个分支（默认 0）
+  branchIndex?: number;
 }
 
 // 工作流配置

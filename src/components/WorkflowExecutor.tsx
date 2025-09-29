@@ -53,10 +53,6 @@ export const WorkflowExecutor: React.FC<WorkflowExecutorProps> = ({
       [nodeId]: status
     }));
     
-    // 通过 onNodeStatusChange 回调来通知父组件
-    if (onNodeStatusChange) {
-      onNodeStatusChange(nodeId, status);
-    }
     console.log(`Node ${nodeId} status updated to: ${status}`);
   }, []);
 
@@ -123,10 +119,33 @@ export const WorkflowExecutor: React.FC<WorkflowExecutorProps> = ({
     // 初始化节点注册表
     NodeRegistry.initializeBuiltinTypes();
     
-    // 构建执行顺序（拓扑排序）
-    const executionOrder = getExecutionOrder(nodes, connections);
-    
-    for (const nodeId of executionOrder) {
+    // 构建出边表和入度（用于找到入口节点）
+    type Conn = { sourceNodeId: string; targetNodeId: string; branchIndex?: number };
+    const nodeIds = nodes.map(n => n.config.id);
+    const outMap = new Map<string, { targetNodeId: string; branchIndex?: number; order: number }[]>();
+    const inDegree = new Map<string, number>();
+
+    nodeIds.forEach(id => {
+      outMap.set(id, []);
+      inDegree.set(id, 0);
+    });
+
+    (connections as Conn[]).forEach((conn, idx) => {
+      if (!nodeIds.includes(conn.sourceNodeId) || !nodeIds.includes(conn.targetNodeId)) return;
+      outMap.get(conn.sourceNodeId)?.push({ targetNodeId: conn.targetNodeId, branchIndex: conn.branchIndex, order: idx });
+      inDegree.set(conn.targetNodeId, (inDegree.get(conn.targetNodeId) || 0) + 1);
+    });
+
+    // 入口节点：入度为 0
+    const queue: string[] = [];
+    inDegree.forEach((deg, id) => { if (deg === 0) queue.push(id); });
+    const visited = new Set<string>();
+
+    while (queue.length > 0) {
+      const nodeId = queue.shift()!;
+
+      if (visited.has(nodeId)) continue;
+      visited.add(nodeId);
       // 检查是否被中止
       if (executionAbortController.current?.signal.aborted) {
         throw new Error('Execution aborted');
@@ -152,16 +171,58 @@ export const WorkflowExecutor: React.FC<WorkflowExecutorProps> = ({
           originalSettings: nodeData.originalSettings || {}
         }, previousResults);
         
-        result.status = 'completed';
-        result.result = executionResult.data;
-        result.endTime = Date.now();
-        
-        // 保存执行结果供后续节点使用
-        if (executionResult.success && executionResult.data) {
-          previousResults.set(nodeId, executionResult.data);
+        // 根据执行结果设置状态
+        if (executionResult.success) {
+          result.status = 'completed';
+          result.result = executionResult.data;
+          result.endTime = Date.now();
+          
+          // 保存执行结果供后续节点使用
+          if (executionResult.data) {
+            previousResults.set(nodeId, executionResult.data);
+          }
+          
+          updateNodeStatus(nodeId, 'completed');
+          
+          // 基于分支选择后继（默认第 0 个）
+          let selectedBranchIndex = 0;
+          // 条件节点：优先读取输出的 branchIndex；无则将布尔结果映射为 0/1
+          if (nodeData.config.type === 'condition' && executionResult.data && typeof executionResult.data === 'object') {
+            const outObj = executionResult.data as Record<string, unknown>;
+            const outBranch = outObj['branchIndex'];
+            if (typeof outBranch === 'number' && Number.isFinite(outBranch)) {
+              selectedBranchIndex = outBranch as number;
+            } else {
+              const boolRes = Boolean(outObj['result']);
+              selectedBranchIndex = boolRes ? 1 : 0;
+            }
+          } else {
+            // 允许通过节点设置覆盖
+            const sbi = (nodeData.settings as Record<string, unknown> | undefined)?.['selectedBranchIndex'] ??
+                        (nodeData.originalSettings as Record<string, unknown> | undefined)?.['selectedBranchIndex'];
+            if (typeof sbi === 'number' && Number.isFinite(sbi)) {
+              selectedBranchIndex = sbi as number;
+            }
+          }
+          
+          // 选择单一后继连接：优先匹配 selectedBranchIndex；否则兜底匹配 0
+          const outs = (outMap.get(nodeId) || []).sort((a, b) => a.order - b.order);
+          const nextConn = outs.find(o => (o.branchIndex ?? 0) === selectedBranchIndex) ||
+                           outs.find(o => (o.branchIndex ?? 0) === 0);
+          if (nextConn && !visited.has(nextConn.targetNodeId)) {
+            queue.push(nextConn.targetNodeId);
+          }
+        } else {
+          // 执行失败
+          result.status = 'error';
+          result.error = executionResult.error?.message || 'Node execution failed';
+          result.endTime = Date.now();
+          
+          updateNodeStatus(nodeId, 'error');
+          
+          // 如果节点执行失败，停止整个工作流
+          throw executionResult.error || new Error('Node execution failed');
         }
-        
-        updateNodeStatus(nodeId, 'completed');
       } catch (error) {
         result.status = 'error';
         result.error = error instanceof Error ? error.message : String(error);
@@ -211,6 +272,14 @@ export const WorkflowExecutor: React.FC<WorkflowExecutorProps> = ({
       await executeWorkflow();
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
+      
+      // 如果是中止操作，不设置为错误状态
+      if (errorMessage === 'Execution aborted') {
+        // 保持当前状态（paused 或 idle），不覆盖为 error
+        return;
+      }
+      
+      // 其他错误才设置为错误状态
       setExecutionStatus('error');
       if (onExecutionError) {
         onExecutionError(errorMessage);
@@ -257,52 +326,7 @@ export const WorkflowExecutor: React.FC<WorkflowExecutorProps> = ({
   }, [workflowData.nodes]);
 
 
-  // 获取执行顺序（简化的拓扑排序）
-  const getExecutionOrder = (nodes: unknown[], connections: unknown[]): string[] => {
-    const nodeIds = (nodes as { config: { id: string } }[]).map(node => node.config.id);
-    const inDegree = new Map<string, number>();
-    const outEdges = new Map<string, string[]>();
-
-    // 初始化
-    nodeIds.forEach(id => {
-      inDegree.set(id, 0);
-      outEdges.set(id, []);
-    });
-
-    // 构建图
-    (connections as { sourceNodeId: string; targetNodeId: string }[]).forEach(conn => {
-      outEdges.get(conn.sourceNodeId)?.push(conn.targetNodeId);
-      inDegree.set(conn.targetNodeId, (inDegree.get(conn.targetNodeId) || 0) + 1);
-    });
-
-    // 拓扑排序
-    const result: string[] = [];
-    const queue: string[] = [];
-
-    // 找到入度为0的节点
-    inDegree.forEach((degree, nodeId) => {
-      if (degree === 0) {
-        queue.push(nodeId);
-      }
-    });
-
-    while (queue.length > 0) {
-      const nodeId = queue.shift()!;
-      result.push(nodeId);
-
-      const children = outEdges.get(nodeId) || [];
-      children.forEach(childId => {
-        const newInDegree = (inDegree.get(childId) || 0) - 1;
-        inDegree.set(childId, newInDegree);
-        
-        if (newInDegree === 0) {
-          queue.push(childId);
-        }
-      });
-    }
-
-    return result;
-  };
+  // 取消使用全量拓扑执行顺序，改为按分支的动态队列遍历
 
 
 
@@ -369,9 +393,6 @@ export const WorkflowExecutor: React.FC<WorkflowExecutorProps> = ({
         nodeStatuses={nodeStatuses}
         onNodeClick={(nodeId, nodeData) => {
           console.log('Node clicked:', nodeId, nodeData);
-        }}
-        onNodeStatusChange={(nodeId, status) => {
-          console.log('Node status changed:', nodeId, status);
         }}
       />
 

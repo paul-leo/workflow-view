@@ -91,13 +91,14 @@ export class WorkflowSerializer {
       });
     }
 
-    // 序列化连接
+    // 序列化连接（保留可选的 branchIndex）
     const serializedConnections: WorkflowConnection[] = [];
     for (const connection of workflow.connections.values()) {
       serializedConnections.push({
         id: connection.id,
         sourceNodeId: connection.sourceNodeId,
-        targetNodeId: connection.targetNodeId
+        targetNodeId: connection.targetNodeId,
+        branchIndex: connection.branchIndex
       });
     }
 
@@ -255,6 +256,10 @@ export class WorkflowSerializer {
         }
         if (!connObj.targetNodeId || typeof connObj.targetNodeId !== 'string') {
           errors.push(`Connection at index ${i} missing targetNodeId`);
+        }
+        // branchIndex 可选，但如果提供则必须是数字且 >= 0
+        if (connObj.branchIndex !== undefined && typeof connObj.branchIndex !== 'number') {
+          errors.push(`Connection at index ${i} has invalid branchIndex (must be number if provided)`);
         }
       }
     }
@@ -490,7 +495,7 @@ export class WorkflowImportExport {
         });
       }
       
-      // 处理连接（更新节点ID引用）
+      // 处理连接（更新节点ID引用，保留 branchIndex）
       for (const connection of sourceSerialized.connections) {
         const newSourceId = idMap.get(connection.sourceNodeId);
         const newTargetId = idMap.get(connection.targetNodeId);
@@ -500,7 +505,8 @@ export class WorkflowImportExport {
             ...connection,
             id: `${nodeIdPrefix}_${i}_${connection.id}`,
             sourceNodeId: newSourceId,
-            targetNodeId: newTargetId
+            targetNodeId: newTargetId,
+            branchIndex: connection.branchIndex
           });
         }
       }

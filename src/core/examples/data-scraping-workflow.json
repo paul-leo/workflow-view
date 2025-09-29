@@ -72,6 +72,19 @@
     },
     {
       "config": {
+        "id": "no-alert",
+        "name": "无通知",
+        "type": "code"
+      },
+      "settings": {
+        "code": "\n      // 未触发警报时执行的占位节点\n      return { skipped: true };\n    "
+      },
+      "originalSettings": {
+        "code": "\n      // 未触发警报时执行的占位节点\n      return { skipped: true };\n    "
+      }
+    },
+    {
+      "config": {
         "id": "market-analysis",
         "name": "AI Agent",
         "type": "agent"
@@ -130,7 +143,14 @@
     {
       "id": "condition-to-ai",
       "sourceNodeId": "price-alert-condition",
-      "targetNodeId": "market-analysis"
+      "targetNodeId": "market-analysis",
+      "branchIndex": 1
+    },
+    {
+      "id": "condition-to-no-alert",
+      "sourceNodeId": "price-alert-condition",
+      "targetNodeId": "no-alert",
+      "branchIndex": 0
     },
     {
       "id": "ai-to-notification",

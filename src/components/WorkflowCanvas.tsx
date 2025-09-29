@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo, useEffect } from 'react';
 import ReactFlow, {
   Background,
   Controls,
@@ -28,7 +28,6 @@ export type WorkflowJson = SerializedWorkflow;
 export interface WorkflowCanvasProps {
   workflowData: WorkflowJson;
   onNodeClick?: (nodeId: string, nodeData: WorkflowNodeData) => void;
-  onNodeStatusChange?: (nodeId: string, status: 'pending' | 'running' | 'completed' | 'error') => void;
   nodeStatuses?: Record<string, 'pending' | 'running' | 'completed' | 'error'>;
   className?: string;
 }
@@ -73,29 +72,61 @@ export const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({
       return reactFlowNode;
     });
 
-    const edges: Edge[] = workflowData.connections.map((connection) => ({
-      id: connection.id,
-      source: connection.sourceNodeId,
-      target: connection.targetNodeId,
-      type: 'workflowEdge',
-      animated: false,
-      markerEnd: {
-        type: MarkerType.ArrowClosed,
-        width: 20,
-        height: 20,
-        color: '#6B7280'
-      },
-      style: {
-        stroke: '#6B7280',
-        strokeWidth: 2
+    // 建立节点类型索引，用于为分支边添加可读标签
+    const nodeTypeById = new Map<string, string>(
+      workflowData.nodes.map(n => [n.config.id, n.config.type])
+    );
+
+    const edges: Edge[] = workflowData.connections.map((connection) => {
+      const sourceType = nodeTypeById.get(connection.sourceNodeId);
+      let label: string | undefined;
+      if (typeof (connection as Record<string, unknown>).branchIndex === 'number') {
+        const bi = (connection as unknown as { branchIndex?: number }).branchIndex ?? 0;
+        if (sourceType === 'condition') {
+          label = bi === 0 ? 'false' : bi === 1 ? 'true' : `B${bi}`;
+        } else {
+          label = `B${bi}`;
+        }
       }
-    }));
+
+      return {
+        id: connection.id,
+        source: connection.sourceNodeId,
+        target: connection.targetNodeId,
+        type: 'workflowEdge',
+        data: label ? { label } : undefined,
+        animated: false,
+        markerEnd: {
+          type: MarkerType.ArrowClosed,
+          width: 20,
+          height: 20,
+          color: '#6B7280'
+        },
+        style: {
+          stroke: '#6B7280',
+          strokeWidth: 2
+        }
+      } as Edge;
+    });
 
     return { initialNodes: nodes, initialEdges: edges };
   }, [workflowData, nodeStatuses]);
 
-  const [nodes, , onNodesChange] = useNodesState(initialNodes);
+  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, , onEdgesChange] = useEdgesState(initialEdges);
+
+  // 同步节点状态更新到画布
+  useEffect(() => {
+    setNodes(prev =>
+      prev.map(node => ({
+        ...node,
+        data: {
+          ...(node.data as WorkflowNodeData),
+          status: nodeStatuses[node.id] || 'pending'
+        }
+      }))
+    );
+  }, [nodeStatuses, setNodes]);
 
   // 节点点击处理
   const handleNodeClick = useCallback((_: React.MouseEvent, node: Node) => {
@@ -104,7 +135,7 @@ export const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({
     }
   }, [onNodeClick]);
 
-  // 注意：节点状态现在通过 nodeStatuses prop 传递，不再需要本地状态更新
+  // 节点状态通过 nodeStatuses prop 传递并自动同步到画布
 
   return (
     <div className={`workflow-canvas ${className || ''}`}>

@@ -29,12 +29,19 @@ export abstract class BaseNode<
   TOutput extends Record<string, unknown> = Record<string, unknown>,
   TSettings extends Record<string, unknown> = Record<string, unknown>
 > {
+  public readonly id: string;
   public readonly config: NodeConfig;
   public settings: TSettings;
   public readonly originalSettings: TSettings; // 保存原始设置（包含表达式）
 
   constructor(config: NodeConfig, settings: TSettings) {
-    this.config = config;
+    const incomingId = (config as Partial<NodeConfig>).id as string | undefined;
+    const resolvedId = incomingId && String(incomingId).length > 0
+      ? incomingId
+      : BaseNode.generateId();
+
+    this.id = resolvedId;
+    this.config = { ...config, id: resolvedId } as NodeConfig;
     this.settings = settings;
     this.originalSettings = JSON.parse(JSON.stringify(settings)); // 深拷贝原始设置
   }
@@ -67,5 +74,23 @@ export abstract class BaseNode<
     ) as TSettings;
 
     return resolvedSettings;
+  }
+
+  // 生成 UUID（优先使用原生 randomUUID，降级到 v4 近似实现）
+  private static generateId(): string {
+    try {
+      const maybeCrypto = (globalThis as unknown as { crypto?: { randomUUID?: () => string } }).crypto;
+      if (maybeCrypto && typeof maybeCrypto.randomUUID === 'function') {
+        return maybeCrypto.randomUUID();
+      }
+    } catch {
+      // ignore and fallback
+    }
+    const template = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx';
+    return template.replace(/[xy]/g, (c) => {
+      const r = (Math.random() * 16) | 0;
+      const v = c === 'x' ? r : (r & 0x3) | 0x8;
+      return v.toString(16);
+    });
   }
 }

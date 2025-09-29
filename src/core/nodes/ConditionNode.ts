@@ -10,6 +10,7 @@ export interface ConditionNodeInput extends Record<string, unknown> {
 export interface ConditionNodeOutput extends Record<string, unknown> {
   result: boolean;
   value: unknown;
+  branchIndex?: number; // 多分支索引：false->0, true->1，或自定义映射
 }
 
 // 条件节点的设置类型
@@ -46,9 +47,11 @@ export class ConditionNode extends BaseNode<ConditionNodeInput, ConditionNodeOut
         result = Boolean(inputs.value);
       }
 
+      // 允许输出自定义分支索引。默认 false->0, true->1
       const output: ConditionNodeOutput = {
         result,
-        value: inputs.value
+        value: inputs.value,
+        branchIndex: result ? 1 : 0
       };
 
       return {
