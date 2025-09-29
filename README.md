@@ -156,6 +156,103 @@ The application will be available at `http://localhost:3000`
    - Type "agent" or "ai" to view the AI Agent Workflow  
    - Type "collapsed" or "block" to view the Collapsed Block Workflow
 
+## 主要类型（由小到大）
+
+仅保留最核心的类型描述，按“节点 → 工作流 → 编辑器（节点渲染器 + 画布）”顺序展示。
+
+### 1) 节点（`src/core/abstract/BaseNode.ts`）
+
+```ts
+export interface NodeExecutionContext {
+  workflowId: string;
+  nodeId: string;
+  previousResults: Map<string, unknown>;
+  originalSettings?: Record<string, unknown>;
+}
+
+export interface NodeExecutionResult<T = unknown> {
+  success: boolean;
+  data?: T;
+  error?: Error;
+}
+
+export interface NodeConfig { id: string; name: string; type: string }
+
+export abstract class BaseNode<TIn extends Record<string, unknown>, TOut extends Record<string, unknown>, TSettings extends Record<string, unknown>> {
+  readonly id: string;
+  readonly config: NodeConfig;
+  settings: TSettings;             // 解析后的设置
+  readonly originalSettings: TSettings; // 原始设置（含表达式）
+  abstract execute(inputs: TIn, ctx: NodeExecutionContext): Promise<NodeExecutionResult<TOut>>;
+  resolveDynamicSettings(inputs: TIn, ctx: NodeExecutionContext): TSettings; // 表达式解析
+}
+```
+
+- **要点**：以抽象类约束节点输入/输出/设置与执行；原始设置经表达式解析得到运行期设置。
+
+### 2) 工作流（`src/core/abstract/BaseWorkflow.ts`）
+
+```ts
+export interface WorkflowConnection { id: string; sourceNodeId: string; targetNodeId: string; branchIndex?: number }
+export interface WorkflowConfig { id: string; name: string }
+
+export class BaseWorkflow {
+  readonly config: WorkflowConfig;
+  nodes: Map<string, BaseNode>;
+  connections: Map<string, WorkflowConnection>;
+  addNode(node: BaseNode): void;
+  addConnection(conn: WorkflowConnection): void;
+  execute(): Promise<Map<string, NodeExecutionResult>>; // 简单顺序执行示例
+}
+```
+
+- **要点**：管理节点与连接，提供最小可用的执行流程（顺序执行 + 上下文传递）。
+
+### 3) 节点渲染器（`src/components/nodes/BaseNodeRenderer.tsx`）
+
+```ts
+export interface NodeRendererProps {
+  data: { id: string; name: string; type: string; status?: 'pending' | 'running' | 'completed' | 'error'; settings?: Record<string, unknown>; originalSettings?: Record<string, unknown> };
+  selected?: boolean;
+  onNodeClick?: (nodeId: string, nodeData: unknown) => void;
+  className?: string;
+  style?: React.CSSProperties;
+}
+
+export interface BaseNodeRendererProps extends NodeRendererProps {
+  header?: { title?: string; icon?: React.ReactNode; backgroundColor?: string; showStatus?: boolean };
+  content?: { title?: string; subtitle?: string; details?: React.ReactNode; customContent?: React.ReactNode };
+  handles?: { showInput?: boolean; showOutput?: boolean; inputPosition?: import('reactflow').Position; outputPosition?: import('reactflow').Position; customHandles?: React.ReactNode };
+  styling?: { borderColor?: string; backgroundColor?: string; minWidth?: number; maxWidth?: number; className?: string };
+}
+
+export const STATUS_COLORS = { pending: '#9CA3AF', running: '#3B82F6', completed: '#10B981', error: '#EF4444' } as const;
+```
+
+- **要点**：通用节点 UI 外壳，按 props 渲染头部/内容/连接点与状态；上层可按 `type` 选择具体渲染器。
+
+### 4) 工作流画布（编辑器，`src/components/WorkflowCanvas.tsx`）
+
+```ts
+export type WorkflowJson = SerializedWorkflow; // 与后端序列化类型对齐
+
+export interface WorkflowCanvasProps {
+  workflowData: WorkflowJson;
+  onNodeClick?: (nodeId: string, nodeData: WorkflowNodeData) => void;
+  nodeStatuses?: Record<string, 'pending' | 'running' | 'completed' | 'error'>;
+  className?: string;
+  singleRow?: boolean;       // 单行自动布局
+  showMiniMap?: boolean;     // 小地图
+  showFlowControls?: boolean;// 画布控件
+}
+```
+
+- **要点**：
+  - 以 `SerializedWorkflow` 为输入，转换为 React Flow 节点/边并自动布局。
+  - 通过 `nodeStatuses` 驱动可视化状态；`onNodeClick` 下发交互。
+  - 支持工具节点虚线连接与分支标签等增强渲染。
+
+
 ## React Compiler
 
 The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).

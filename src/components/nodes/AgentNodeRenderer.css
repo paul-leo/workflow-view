@@ -99,6 +99,20 @@
   background: #F9FAFB;
   border-radius: 3px;
   border-left: 2px solid #8B5CF6;
+  transition: all 0.2s ease;
+}
+
+.agent-tool-item.clickable {
+  cursor: pointer;
+}
+
+.agent-tool-item.active {
+  background: #EDE9FE;
+  border-left-color: #7C3AED;
+}
+
+.agent-tool-item.clickable:hover {
+  background: #F3F4F6;
 }
 
 .agent-tool-icon {
