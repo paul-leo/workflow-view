@@ -1,8 +1,7 @@
+/* 应用主样式 */
 .app {
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-  background: #f8fafc;
+  min-height: 100vh;
+  background: #F9FAFB;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
     sans-serif;
@@ -58,9 +57,295 @@ input:focus-visible {
   background: rgba(59, 130, 246, 0.2);
 }
 
-/* Responsive typography */
+/* 欢迎页面 */
+.app-welcome {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.welcome-content {
+  max-width: 600px;
+  text-align: center;
+  background: #FFFFFF;
+  padding: 48px 40px;
+  border-radius: 16px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.welcome-title {
+  font-size: 32px;
+  font-weight: 700;
+  color: #1F2937;
+  margin: 0 0 16px 0;
+}
+
+.welcome-description {
+  font-size: 16px;
+  color: #6B7280;
+  margin: 0 0 40px 0;
+  line-height: 1.6;
+}
+
+/* 文件上传区域 */
+.upload-area {
+  position: relative;
+  margin-bottom: 32px;
+}
+
+.upload-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.upload-label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 48px 24px;
+  border: 2px dashed #D1D5DB;
+  border-radius: 12px;
+  background: #F9FAFB;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.upload-label:hover {
+  border-color: #3B82F6;
+  background: #EFF6FF;
+}
+
+.upload-label:hover .upload-icon {
+  color: #3B82F6;
+  transform: scale(1.1);
+}
+
+.upload-icon {
+  color: #9CA3AF;
+  transition: all 0.3s ease;
+}
+
+.upload-text {
+  font-size: 16px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.upload-hint {
+  font-size: 14px;
+  color: #6B7280;
+}
+
+/* 示例区域 */
+.example-section {
+  margin-bottom: 32px;
+}
+
+.example-section h3 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #374151;
+  margin: 0 0 20px 0;
+}
+
+.example-workflows {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+.workflow-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  background: #F9FAFB;
+  border: 1px solid #E5E7EB;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.workflow-card:hover {
+  background: #F3F4F6;
+  border-color: #D1D5DB;
+}
+
+.workflow-card-content {
+  flex: 1;
+}
+
+.workflow-card-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1F2937;
+  margin: 0 0 4px 0;
+}
+
+.workflow-card-description {
+  font-size: 14px;
+  color: #6B7280;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.workflow-card-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: #3B82F6;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.workflow-card-btn:hover:not(:disabled) {
+  background: #2563EB;
+}
+
+.workflow-card-btn:active:not(:disabled) {
+  background: #1D4ED8;
+}
+
+.workflow-card-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* 主应用区域 */
+.app-main {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+.app-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 20px;
+  background: #FFFFFF;
+  border-bottom: 1px solid #E5E7EB;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.toolbar-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: #3B82F6;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.toolbar-btn:hover {
+  background: #2563EB;
+}
+
+.toolbar-btn.success {
+  background: #10B981;
+}
+
+.toolbar-btn.success:hover {
+  background: #059669;
+}
+
+.toolbar-btn.secondary {
+  background: #6B7280;
+}
+
+.toolbar-btn.secondary:hover {
+  background: #4B5563;
+}
+
+/* 错误提示 */
+.error-message {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background: #FEE2E2;
+  color: #991B1B;
+  border: 1px solid #FECACA;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+/* 响应式调整 */
 @media (max-width: 768px) {
   .app {
     font-size: 14px;
+  }
+  
+  .welcome-content {
+    padding: 32px 24px;
+    margin: 16px;
+  }
+  
+  .welcome-title {
+    font-size: 24px;
+  }
+  
+  .welcome-description {
+    font-size: 14px;
+  }
+  
+  .upload-label {
+    padding: 32px 16px;
+  }
+  
+  .upload-text {
+    font-size: 14px;
+  }
+  
+  .upload-hint {
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .app-welcome {
+    padding: 16px;
+  }
+  
+  .welcome-content {
+    padding: 24px 16px;
+    margin: 0;
+  }
+  
+  .welcome-title {
+    font-size: 20px;
+  }
+  
+  .upload-label {
+    padding: 24px 12px;
+  }
+  
+  .example-btn {
+    width: 100%;
+    justify-content: center;
   }
 }
