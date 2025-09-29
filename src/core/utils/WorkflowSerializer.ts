@@ -22,8 +22,9 @@ export interface SerializedWorkflow {
 // 序列化后的节点接口
 export interface SerializedNode {
   config: NodeConfig;
-  settings: Record<string, unknown>;
   originalSettings: Record<string, unknown>;
+  // settings 字段已废弃，为了向后兼容保留可选
+  settings?: Record<string, unknown>;
 }
 
 // 节点构造函数类型（注册表内部使用统一签名）
@@ -85,8 +86,8 @@ export class WorkflowSerializer {
           name: node.config.name,
           type: node.config.type
         },
-        settings: this.deepClone(node.settings),
         originalSettings: this.deepClone(node.originalSettings)
+        // 不再保存 settings，减少 JSON 文件大小
       });
     }
 
@@ -137,17 +138,18 @@ export class WorkflowSerializer {
       }
 
       try {
+        // 使用 originalSettings 作为初始 settings（向后兼容）
+        const initialSettings = serializedNode.settings || serializedNode.originalSettings;
+        
         // 创建节点实例
         const node = new nodeConstructor(
           serializedNode.config.id,
-          serializedNode.settings
+          initialSettings
         );
 
-        // 恢复原始设置（包含表达式）
-        if (serializedNode.originalSettings) {
-          (node as unknown as { originalSettings: Record<string, unknown> }).originalSettings =
-            this.deepClone(serializedNode.originalSettings);
-        }
+        // 设置原始设置（包含表达式）
+        (node as unknown as { originalSettings: Record<string, unknown> }).originalSettings =
+          this.deepClone(serializedNode.originalSettings);
 
         workflow.addNode(node);
       } catch (error) {
@@ -224,8 +226,11 @@ export class WorkflowSerializer {
           }
         }
 
-        if (!nodeObj.settings || typeof nodeObj.settings !== 'object') {
-          errors.push(`Node at index ${i} missing settings`);
+        // 检查是否有 originalSettings 或 settings（向后兼容）
+        if (!nodeObj.originalSettings || typeof nodeObj.originalSettings !== 'object') {
+          if (!nodeObj.settings || typeof nodeObj.settings !== 'object') {
+            errors.push(`Node at index ${i} missing originalSettings (and settings for backward compatibility)`);
+          }
         }
       }
     }

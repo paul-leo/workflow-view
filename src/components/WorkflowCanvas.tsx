@@ -1,19 +1,22 @@
 import React, { useCallback, useMemo } from 'react';
 import ReactFlow, {
-  Node,
-  Edge,
   Background,
   Controls,
   MiniMap,
   useNodesState,
   useEdgesState,
   ConnectionMode,
-  NodeTypes,
-  EdgeTypes,
   MarkerType
 } from 'reactflow';
+import type {
+  Node,
+  Edge,
+  NodeTypes,
+  EdgeTypes
+} from 'reactflow';
 import 'reactflow/dist/style.css';
-import { WorkflowNode, WorkflowNodeData } from './WorkflowNode';
+import { WorkflowNode } from './WorkflowNode';
+import type { WorkflowNodeData } from './WorkflowNode';
 import { WorkflowEdge } from './WorkflowEdge';
 import type { SerializedWorkflow } from '../core/utils/WorkflowSerializer';
 import './WorkflowCanvas.css';
@@ -26,6 +29,7 @@ export interface WorkflowCanvasProps {
   workflowData: WorkflowJson;
   onNodeClick?: (nodeId: string, nodeData: WorkflowNodeData) => void;
   onNodeStatusChange?: (nodeId: string, status: 'pending' | 'running' | 'completed' | 'error') => void;
+  nodeStatuses?: Record<string, 'pending' | 'running' | 'completed' | 'error'>;
   className?: string;
 }
 
@@ -42,7 +46,7 @@ const edgeTypes: EdgeTypes = {
 export const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({
   workflowData,
   onNodeClick,
-  onNodeStatusChange,
+  nodeStatuses = {},
   className
 }) => {
   // 将JSON数据转换为ReactFlow格式
@@ -62,7 +66,7 @@ export const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({
           type: nodeData.config.type,
           settings: nodeData.settings,
           originalSettings: nodeData.originalSettings,
-          status: 'pending'
+          status: nodeStatuses[nodeData.config.id] || 'pending'
         } as WorkflowNodeData
       };
 
@@ -88,44 +92,19 @@ export const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({
     }));
 
     return { initialNodes: nodes, initialEdges: edges };
-  }, [workflowData]);
+  }, [workflowData, nodeStatuses]);
 
-  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
-  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+  const [nodes, , onNodesChange] = useNodesState(initialNodes);
+  const [edges, , onEdgesChange] = useEdgesState(initialEdges);
 
   // 节点点击处理
-  const handleNodeClick = useCallback((event: React.MouseEvent, node: Node) => {
+  const handleNodeClick = useCallback((_: React.MouseEvent, node: Node) => {
     if (onNodeClick) {
       onNodeClick(node.id, node.data as WorkflowNodeData);
     }
   }, [onNodeClick]);
 
-  // 更新节点状态
-  const updateNodeStatus = useCallback((nodeId: string, status: 'pending' | 'running' | 'completed' | 'error') => {
-    setNodes((nds) =>
-      nds.map((node) => {
-        if (node.id === nodeId) {
-          return {
-            ...node,
-            data: {
-              ...node.data,
-              status
-            }
-          };
-        }
-        return node;
-      })
-    );
-
-    if (onNodeStatusChange) {
-      onNodeStatusChange(nodeId, status);
-    }
-  }, [setNodes, onNodeStatusChange]);
-
-  // 暴露更新状态的方法给父组件
-  React.useImperativeHandle(React.createRef(), () => ({
-    updateNodeStatus
-  }));
+  // 注意：节点状态现在通过 nodeStatuses prop 传递，不再需要本地状态更新
 
   return (
     <div className={`workflow-canvas ${className || ''}`}>

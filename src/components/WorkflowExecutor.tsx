@@ -42,12 +42,21 @@ export const WorkflowExecutor: React.FC<WorkflowExecutorProps> = ({
   const [executionStatus, setExecutionStatus] = useState<ExecutionStatus>('idle');
   const [executionResults, setExecutionResults] = useState<ExecutionResult[]>([]);
   const [currentNodeId, setCurrentNodeId] = useState<string | null>(null);
+  const [nodeStatuses, setNodeStatuses] = useState<Record<string, NodeExecutionStatus>>({});
   const executionAbortController = useRef<AbortController | null>(null);
 
   // 更新节点状态
   const updateNodeStatus = useCallback((nodeId: string, status: NodeExecutionStatus) => {
-    // 这里应该调用 WorkflowCanvas 的方法来更新节点状态
-    // 由于我们没有直接的引用，我们通过状态管理来实现
+    // 更新本地状态
+    setNodeStatuses(prev => ({
+      ...prev,
+      [nodeId]: status
+    }));
+    
+    // 通过 onNodeStatusChange 回调来通知父组件
+    if (onNodeStatusChange) {
+      onNodeStatusChange(nodeId, status);
+    }
     console.log(`Node ${nodeId} status updated to: ${status}`);
   }, []);
 
@@ -137,7 +146,11 @@ export const WorkflowExecutor: React.FC<WorkflowExecutorProps> = ({
 
       try {
         // 真实的节点执行
-        const executionResult = await executeNode(nodeData, previousResults);
+        const executionResult = await executeNode({
+          config: nodeData.config,
+          settings: nodeData.settings || {},
+          originalSettings: nodeData.originalSettings || {}
+        }, previousResults);
         
         result.status = 'completed';
         result.result = executionResult.data;
@@ -236,10 +249,12 @@ export const WorkflowExecutor: React.FC<WorkflowExecutorProps> = ({
     setCurrentNodeId(null);
     
     // 重置所有节点状态
+    const resetStatuses: Record<string, NodeExecutionStatus> = {};
     workflowData.nodes.forEach(node => {
-      updateNodeStatus(node.config.id, 'pending');
+      resetStatuses[node.config.id] = 'pending';
     });
-  }, [workflowData.nodes, updateNodeStatus]);
+    setNodeStatuses(resetStatuses);
+  }, [workflowData.nodes]);
 
 
   // 获取执行顺序（简化的拓扑排序）
@@ -351,6 +366,7 @@ export const WorkflowExecutor: React.FC<WorkflowExecutorProps> = ({
       {/* 工作流画布 */}
       <WorkflowCanvas
         workflowData={workflowData}
+        nodeStatuses={nodeStatuses}
         onNodeClick={(nodeId, nodeData) => {
           console.log('Node clicked:', nodeId, nodeData);
         }}

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Square, HelpCircle } from 'lucide-react';
 import { BaseNodeRenderer, NodeRendererUtils } from './BaseNodeRenderer';
+import { NodeRegistry } from '../../core/utils/WorkflowSerializer';
 
 // 节点渲染器属性接口
 export interface NodeRendererProps {
@@ -86,16 +87,32 @@ export const DefaultNodeRenderer: React.FC<NodeRendererProps> = (props) => {
 
 // 获取节点类型的显示标签
 function getNodeTypeLabel(type: string): string {
-  const labels: Record<string, string> = {
+  // 首先尝试从注册表获取节点构造函数
+  NodeRegistry.initializeBuiltinTypes();
+  const NodeConstructor = NodeRegistry.getNodeConstructor(type);
+  
+  if (NodeConstructor) {
+    // 如果注册表中有这个类型，创建一个临时实例来获取名称
+    try {
+      const tempInstance = new NodeConstructor('temp', {});
+      return tempInstance.config.name;
+    } catch {
+      // 如果创建失败，使用备用标签
+    }
+  }
+  
+  // 备用的类型标签映射
+  const fallbackLabels: Record<string, string> = {
     'timer-trigger': '定时器',
-    'http-request': 'HTTP',
-    'code': '代码',
-    'condition': '条件',
-    'agent': 'AI',
+    'http-request': 'HTTP请求',
+    'code': '代码执行',
+    'condition': '条件判断',
+    'agent': 'AI Agent',
     'workflow': '工作流',
     'unknown': '未知'
   };
-  return labels[type] || type.toUpperCase();
+  
+  return fallbackLabels[type] || type.toUpperCase();
 }
 
 // 格式化设置键名
