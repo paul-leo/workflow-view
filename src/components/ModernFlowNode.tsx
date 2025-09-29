@@ -145,7 +145,7 @@ const ModernFlowNode: React.FC<ModernFlowNodeProps> = ({
       {/* Node Header */}
       <div className="modern-flow-node__header">
         <div className="modern-flow-node__icon-container">
-          {getNodeIcon(node.type, node.category)}
+          {getNodeIcon(node.type)}
         </div>
         
         <div className="modern-flow-node__title-container">

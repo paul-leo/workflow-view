@@ -10,7 +10,7 @@ export const aiAgentWorkflow: Workflow = {
       title: 'Create User Form',
       type: 'trigger',
       status: 'completed',
-      position: { x: 50, y: 100 },
+      position: { x: 100, y: 200 },
       width: 140,
       height: 40,
       category: 'trigger'
@@ -21,7 +21,7 @@ export const aiAgentWorkflow: Workflow = {
       type: 'agent',
       status: 'running',
       subtitle: 'Tools Agent',
-      position: { x: 250, y: 80 },
+      position: { x: 350, y: 180 },
       width: 160,
       height: 60,
       category: 'agent',
@@ -33,7 +33,7 @@ export const aiAgentWorkflow: Workflow = {
           title: 'Chat Model',
           type: 'tool',
           status: 'completed',
-          position: { x: 450, y: 50 },
+          position: { x: 600, y: 120 },
           width: 120,
           height: 40
         },
@@ -42,7 +42,7 @@ export const aiAgentWorkflow: Workflow = {
           title: 'Memory',
           type: 'tool',
           status: 'completed',
-          position: { x: 450, y: 110 },
+          position: { x: 600, y: 240 },
           width: 120,
           height: 40
         }
@@ -53,7 +53,7 @@ export const aiAgentWorkflow: Workflow = {
       title: 'Is Manager?',
       type: 'condition',
       status: 'pending',
-      position: { x: 600, y: 100 },
+      position: { x: 800, y: 200 },
       width: 120,
       height: 40
     },
@@ -63,7 +63,7 @@ export const aiAgentWorkflow: Workflow = {
       type: 'tool',
       status: 'pending',
       subtitle: 'invite: channel',
-      position: { x: 780, y: 60 },
+      position: { x: 1050, y: 120 },
       width: 140,
       height: 50
     },
@@ -73,7 +73,7 @@ export const aiAgentWorkflow: Workflow = {
       type: 'tool',
       status: 'pending',
       subtitle: 'updateProfile: user',
-      position: { x: 780, y: 140 },
+      position: { x: 1050, y: 280 },
       width: 140,
       height: 50
     }
@@ -98,7 +98,7 @@ export const simpleTaskFlow: Workflow = {
       title: 'Prepare',
       type: 'task',
       status: 'completed',
-      position: { x: 100, y: 150 },
+      position: { x: 200, y: 200 },
       width: 120,
       height: 40
     },
@@ -107,7 +107,7 @@ export const simpleTaskFlow: Workflow = {
       title: 'Execute',
       type: 'task',
       status: 'running',
-      position: { x: 280, y: 150 },
+      position: { x: 450, y: 200 },
       width: 120,
       height: 40
     },
@@ -116,7 +116,7 @@ export const simpleTaskFlow: Workflow = {
       title: 'Verify',
       type: 'task',
       status: 'pending',
-      position: { x: 460, y: 150 },
+      position: { x: 700, y: 200 },
       width: 120,
       height: 40
     }
@@ -137,7 +137,7 @@ export const collapsedBlockWorkflow: Workflow = {
       title: 'Start Process',
       type: 'trigger',
       status: 'completed',
-      position: { x: 100, y: 200 },
+      position: { x: 150, y: 250 },
       width: 130,
       height: 40
     },
@@ -146,7 +146,7 @@ export const collapsedBlockWorkflow: Workflow = {
       title: 'Data Processing',
       type: 'block',
       status: 'running',
-      position: { x: 300, y: 200 },
+      position: { x: 400, y: 250 },
       width: 140,
       height: 40,
       isCollapsible: true,
@@ -158,7 +158,7 @@ export const collapsedBlockWorkflow: Workflow = {
           title: 'Validate Data',
           type: 'task',
           status: 'completed',
-          position: { x: 300, y: 120 },
+          position: { x: 400, y: 150 },
           width: 120,
           height: 40
         },
@@ -167,7 +167,7 @@ export const collapsedBlockWorkflow: Workflow = {
           title: 'Transform',
           type: 'task',
           status: 'running',
-          position: { x: 300, y: 280 },
+          position: { x: 400, y: 350 },
           width: 120,
           height: 40
         }
@@ -178,7 +178,7 @@ export const collapsedBlockWorkflow: Workflow = {
       title: 'Generate Output',
       type: 'task',
       status: 'pending',
-      position: { x: 500, y: 200 },
+      position: { x: 650, y: 250 },
       width: 140,
       height: 40
     }
