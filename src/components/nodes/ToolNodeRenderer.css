@@ -1,0 +1,154 @@
+/* Tool Node Renderer 样式 */
+
+.tool-node {
+  position: relative;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  opacity: 0.8; /* 工具节点稍微透明，表示它是辅助节点 */
+  transition: opacity 0.2s ease;
+}
+
+.tool-node:hover {
+  opacity: 1;
+}
+
+.tool-node-content {
+  padding: 8px 12px;
+  font-size: 12px;
+  color: #374151;
+}
+
+/* 工具描述 */
+.tool-description {
+  margin-bottom: 8px;
+  line-height: 1.4;
+  color: #6B7280;
+  font-size: 11px;
+}
+
+/* 工具分类 */
+.tool-category {
+  margin-bottom: 8px;
+}
+
+.tool-category-badge {
+  display: inline-block;
+  padding: 2px 6px;
+  border-radius: 12px;
+  font-size: 10px;
+  font-weight: 500;
+  border: 1px solid currentColor;
+}
+
+.tool-category-badge[data-category="数学"] {
+  background-color: rgba(245, 158, 11, 0.2);
+  color: #F59E0B;
+}
+
+.tool-category-badge[data-category="搜索"] {
+  background-color: rgba(59, 130, 246, 0.2);
+  color: #3B82F6;
+}
+
+.tool-category-badge[data-category="开发"] {
+  background-color: rgba(16, 185, 129, 0.2);
+  color: #10B981;
+}
+
+.tool-category-badge[data-category="文本"] {
+  background-color: rgba(139, 92, 246, 0.2);
+  color: #8B5CF6;
+}
+
+.tool-category-badge[data-category="工具"] {
+  background-color: rgba(107, 114, 128, 0.2);
+  color: #6B7280;
+}
+
+/* 父 Agent 信息 */
+.tool-parent-info {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  background: #F9FAFB;
+  border-radius: 4px;
+  border-left: 2px solid #8B5CF6;
+  margin-top: 8px;
+}
+
+.tool-parent-label {
+  font-size: 10px;
+  color: #6B7280;
+  font-weight: 500;
+}
+
+.tool-parent-name {
+  font-size: 10px;
+  color: #8B5CF6;
+  font-weight: 600;
+}
+
+/* 错误状态 */
+.tool-node-error {
+  border-color: #EF4444 !important;
+  background: #FEF2F2 !important;
+}
+
+.tool-node-error .tool-node-content {
+  color: #DC2626;
+}
+
+/* 工具节点特殊样式 */
+.tool-node-renderer {
+  border-style: dashed !important; /* 虚线边框 */
+  border-width: 2px !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.tool-node-renderer.selected {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border-style: solid !important; /* 选中时变为实线 */
+}
+
+/* 工具节点动画效果 */
+.tool-node-renderer {
+  animation: tool-node-appear 0.3s ease-out;
+}
+
+@keyframes tool-node-appear {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 0.8;
+    transform: scale(1);
+  }
+}
+
+/* 工具节点头部样式覆盖 */
+.tool-node .base-node-header {
+  opacity: 0.9;
+}
+
+.tool-node .base-node-header-title {
+  font-weight: 600;
+  font-size: 12px;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .tool-node-content {
+    font-size: 11px;
+    padding: 6px 10px;
+  }
+  
+  .tool-description {
+    font-size: 10px;
+  }
+  
+  .tool-category-badge {
+    font-size: 9px;
+    padding: 1px 4px;
+  }
+}

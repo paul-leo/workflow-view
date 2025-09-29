@@ -1,0 +1,75 @@
+/* Tool Connection Edge 样式 */
+
+.tool-connection-edge {
+  pointer-events: stroke;
+  cursor: pointer;
+}
+
+.tool-connection-edge.selected {
+  stroke: #8B5CF6 !important;
+  stroke-width: 3px !important;
+  opacity: 1 !important;
+}
+
+.tool-connection-edge.active {
+  stroke: #8B5CF6 !important;
+  opacity: 1 !important;
+}
+
+/* 工具连接脉冲动画 */
+@keyframes tool-connection-pulse {
+  0%, 100% {
+    stroke-opacity: 0.6;
+    stroke-width: 2px;
+  }
+  50% {
+    stroke-opacity: 1;
+    stroke-width: 3px;
+  }
+}
+
+/* 边标签样式 */
+.tool-connection-label {
+  background: transparent;
+  pointer-events: auto;
+}
+
+.tool-connection-badge {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 6px;
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid #8B5CF6;
+  border-radius: 12px;
+  font-size: 10px;
+  font-weight: 500;
+  color: #8B5CF6;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(4px);
+  transition: all 0.2s ease;
+}
+
+.tool-connection-badge:hover {
+  background: rgba(139, 92, 246, 0.1);
+  transform: scale(1.05);
+}
+
+/* 工具连接边的悬停效果 */
+.tool-connection-edge:hover {
+  stroke-width: 3px !important;
+  opacity: 1 !important;
+}
+
+/* 暗色模式支持 */
+@media (prefers-color-scheme: dark) {
+  .tool-connection-badge {
+    background: rgba(31, 41, 55, 0.95);
+    border-color: #8B5CF6;
+    color: #A78BFA;
+  }
+  
+  .tool-connection-badge:hover {
+    background: rgba(139, 92, 246, 0.2);
+  }
+}

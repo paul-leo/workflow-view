@@ -29,6 +29,11 @@ export interface WorkflowExecutorProps {
   onExecutionError?: (error: string) => void;
   onNodeExecutionUpdate?: (result: ExecutionResult) => void;
   className?: string;
+  // UI 控制
+  showControls?: boolean;
+  showMiniMap?: boolean;
+  singleRow?: boolean;
+  showExecutorToolbar?: boolean; // 是否显示执行按钮工具栏
 }
 
 export const WorkflowExecutor: React.FC<WorkflowExecutorProps> = ({
@@ -37,7 +42,11 @@ export const WorkflowExecutor: React.FC<WorkflowExecutorProps> = ({
   onExecutionComplete,
   onExecutionError,
   onNodeExecutionUpdate,
-  className
+  className,
+  showControls = false,
+  showMiniMap = false,
+  singleRow = true,
+  showExecutorToolbar = false
 }) => {
   const [executionStatus, setExecutionStatus] = useState<ExecutionStatus>('idle');
   const [executionResults, setExecutionResults] = useState<ExecutionResult[]>([]);
@@ -332,65 +341,70 @@ export const WorkflowExecutor: React.FC<WorkflowExecutorProps> = ({
 
   return (
     <div className={`workflow-executor ${className || ''}`}>
-      {/* 控制面板 */}
-      <div className="workflow-controls">
-        <div className="control-buttons">
-          <button
-            className={`control-btn ${executionStatus === 'running' ? 'active' : ''}`}
-            onClick={startExecution}
-            disabled={executionStatus === 'running'}
-            title="开始执行"
-          >
-            <Play size={16} />
-            开始
-          </button>
-          
-          <button
-            className="control-btn"
-            onClick={pauseExecution}
-            disabled={executionStatus !== 'running'}
-            title="暂停执行"
-          >
-            <Pause size={16} />
-            暂停
-          </button>
-          
-          <button
-            className="control-btn"
-            onClick={stopExecution}
-            disabled={executionStatus === 'idle'}
-            title="停止执行"
-          >
-            <Square size={16} />
-            停止
-          </button>
-          
-          <button
-            className="control-btn"
-            onClick={resetExecution}
-            title="重置"
-          >
-            <RotateCcw size={16} />
-            重置
-          </button>
-        </div>
+      {/* 控制面板（可隐藏） */}
+      {showExecutorToolbar && (
+        <div className="workflow-controls">
+          <div className="control-buttons">
+            <button
+              className={`control-btn ${executionStatus === 'running' ? 'active' : ''}`}
+              onClick={startExecution}
+              disabled={executionStatus === 'running'}
+              title="开始执行"
+            >
+              <Play size={16} />
+              开始
+            </button>
+            
+            <button
+              className="control-btn"
+              onClick={pauseExecution}
+              disabled={executionStatus !== 'running'}
+              title="暂停执行"
+            >
+              <Pause size={16} />
+              暂停
+            </button>
+            
+            <button
+              className="control-btn"
+              onClick={stopExecution}
+              disabled={executionStatus === 'idle'}
+              title="停止执行"
+            >
+              <Square size={16} />
+              停止
+            </button>
+            
+            <button
+              className="control-btn"
+              onClick={resetExecution}
+              title="重置"
+            >
+              <RotateCcw size={16} />
+              重置
+            </button>
+          </div>
 
-        <div className="execution-status">
-          <span className={`status-indicator status-${executionStatus}`}>
-            {getStatusText(executionStatus)}
-          </span>
-          {currentNodeId && (
-            <span className="current-node">
-              正在执行: {workflowData.nodes.find(n => n.config.id === currentNodeId)?.config.name}
+          <div className="execution-status">
+            <span className={`status-indicator status-${executionStatus}`}>
+              {getStatusText(executionStatus)}
             </span>
-          )}
+            {currentNodeId && (
+              <span className="current-node">
+                正在执行: {workflowData.nodes.find(n => n.config.id === currentNodeId)?.config.name}
+              </span>
+            )}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* 工作流画布 */}
       <WorkflowCanvas
         workflowData={workflowData}
         nodeStatuses={nodeStatuses}
+        singleRow={singleRow}
+        showMiniMap={showMiniMap}
+        showFlowControls={showControls}
         onNodeClick={(nodeId, nodeData) => {
           console.log('Node clicked:', nodeId, nodeData);
         }}

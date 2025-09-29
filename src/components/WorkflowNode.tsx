@@ -1,5 +1,7 @@
 import React from 'react';
 import { DefaultNodeRenderer } from './nodes/DefaultNodeRenderer';
+import { AgentNodeRenderer } from './nodes/AgentNodeRenderer';
+import { ToolNodeRenderer } from './nodes/ToolNodeRenderer';
 import type { NodeRendererProps } from './nodes/DefaultNodeRenderer';
 
 // 节点数据接口
@@ -19,9 +21,19 @@ export interface WorkflowNodeProps extends NodeRendererProps {
 }
 
 /**
- * 工作流节点组件 - 使用默认渲染器
+ * 工作流节点组件 - 根据节点类型选择合适的渲染器
  */
 export const WorkflowNode: React.FC<WorkflowNodeProps> = (props) => {
-  return <DefaultNodeRenderer {...props} />;
+  const { data } = props;
+  
+  // 根据节点类型选择渲染器
+  switch (data.type) {
+    case 'agent':
+      return <AgentNodeRenderer {...props} />;
+    case 'tool':
+      return <ToolNodeRenderer {...props} />;
+    default:
+      return <DefaultNodeRenderer {...props} />;
+  }
 };
 

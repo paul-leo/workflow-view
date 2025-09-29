@@ -1,0 +1,152 @@
+{
+  "config": {
+    "id": "agent-workflow-demo",
+    "name": "AI Agent 工具演示工作流",
+    "version": "1.0.0",
+    "description": "演示 AI Agent 节点如何使用多种工具进行智能处理"
+  },
+  "nodes": [
+    {
+      "id": "trigger-1",
+      "config": {
+        "id": "trigger-1",
+        "name": "用户输入触发",
+        "type": "timer-trigger"
+      },
+      "settings": {
+        "interval": 0,
+        "triggerOnce": true,
+        "message": "请帮我计算 15 * 8 + 32，然后搜索关于'人工智能'的信息，最后处理文本'Hello World'"
+      },
+      "position": { "x": 100, "y": 200 }
+    },
+    {
+      "id": "agent-1",
+      "config": {
+        "id": "agent-1",
+        "name": "智能助手",
+        "type": "agent"
+      },
+      "settings": {
+        "systemPrompt": "你是一个智能助手，可以使用多种工具来帮助用户完成任务。根据用户的请求，选择合适的工具并提供详细的回复。",
+        "model": "gpt-4",
+        "enableTools": true,
+        "maxToolCalls": 10
+      },
+      "tools": [
+        {
+          "id": "calculator",
+          "name": "计算器",
+          "description": "执行数学运算",
+          "category": "数学"
+        },
+        {
+          "id": "web-search",
+          "name": "网络搜索",
+          "description": "搜索网络信息",
+          "category": "搜索"
+        },
+        {
+          "id": "text-processor",
+          "name": "文本处理器",
+          "description": "处理和分析文本",
+          "category": "文本"
+        }
+      ],
+      "position": { "x": 400, "y": 200 }
+    },
+    {
+      "id": "condition-1",
+      "config": {
+        "id": "condition-1",
+        "name": "结果检查",
+        "type": "condition"
+      },
+      "settings": {
+        "condition": {
+          "type": "simple",
+          "field": "toolsUsed",
+          "operator": "gt",
+          "value": 0
+        }
+      },
+      "position": { "x": 700, "y": 200 }
+    },
+    {
+      "id": "success-output",
+      "config": {
+        "id": "success-output",
+        "name": "成功输出",
+        "type": "http-request"
+      },
+      "settings": {
+        "url": "https://api.example.com/results",
+        "method": "POST",
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "status": "success",
+          "message": "Agent 成功使用工具完成任务",
+          "data": "{{agent-1.response}}"
+        }
+      },
+      "position": { "x": 1000, "y": 150 }
+    },
+    {
+      "id": "fallback-output",
+      "config": {
+        "id": "fallback-output",
+        "name": "备用输出",
+        "type": "http-request"
+      },
+      "settings": {
+        "url": "https://api.example.com/fallback",
+        "method": "POST",
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "status": "fallback",
+          "message": "Agent 未使用工具，返回普通回复",
+          "data": "{{agent-1.response}}"
+        }
+      },
+      "position": { "x": 1000, "y": 250 }
+    }
+  ],
+  "connections": [
+    {
+      "id": "conn-1",
+      "sourceNodeId": "trigger-1",
+      "sourcePortId": "output",
+      "targetNodeId": "agent-1",
+      "targetPortId": "input",
+      "type": "data"
+    },
+    {
+      "id": "conn-2",
+      "sourceNodeId": "agent-1",
+      "sourcePortId": "output",
+      "targetNodeId": "condition-1",
+      "targetPortId": "input",
+      "type": "data"
+    },
+    {
+      "id": "conn-3",
+      "sourceNodeId": "condition-1",
+      "sourcePortId": "true",
+      "targetNodeId": "success-output",
+      "targetPortId": "input",
+      "type": "data"
+    },
+    {
+      "id": "conn-4",
+      "sourceNodeId": "condition-1",
+      "sourcePortId": "false",
+      "targetNodeId": "fallback-output",
+      "targetPortId": "input",
+      "type": "data"
+    }
+  ]
+}

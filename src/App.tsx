@@ -1,17 +1,24 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { WorkflowExecutor } from './components/WorkflowExecutor';
 import { WorkflowSerializer } from './core/utils/WorkflowSerializer';
 import type { WorkflowJson } from './components/WorkflowCanvas';
-import { Upload, FileText, AlertCircle, Copy, Check } from 'lucide-react';
+import { Upload, AlertCircle, Copy, Check, Send } from 'lucide-react';
 import './App.css';
 
 // 导入示例工作流
 import dataScraping from './core/examples/data-scraping-workflow.json';
 import contentGeneration from './core/examples/content-generation-workflow.json';
 import orderProcessing from './core/examples/order-processing-workflow.json';
+import agentWorkflow from './core/examples/agent-workflow-example.json';
 
 // 工作流示例配置
 const EXAMPLE_WORKFLOWS = [
+  {
+    id: 'agent-workflow',
+    name: 'AI Agent 工具演示工作流',
+    description: '演示 AI Agent 节点如何使用多种工具进行智能处理',
+    data: agentWorkflow
+  },
   {
     id: 'data-scraping',
     name: '数据抓取与分析工作流',
@@ -49,8 +56,8 @@ function readFileAsText(file: File): Promise<string> {
 function App() {
   const [workflowData, setWorkflowData] = useState<WorkflowJson | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
   const [copiedToClipboard, setCopiedToClipboard] = useState(false);
+  const [chatMessage, setChatMessage] = useState<string>('');
 
   // 加载示例工作流
   const loadExampleWorkflow = useCallback((workflowId: string) => {
@@ -73,6 +80,13 @@ function App() {
     }
   }, []);
 
+  // 初始随机选择一个示例并加载
+  useEffect(() => {
+    const random = EXAMPLE_WORKFLOWS[0];
+    loadExampleWorkflow(random.id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // 处理文件上传
   const handleFileUpload = useCallback(async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -83,7 +97,6 @@ function App() {
       return;
     }
 
-    setLoading(true);
     setError(null);
 
     try {
@@ -99,29 +112,9 @@ function App() {
       setWorkflowData(parsed as WorkflowJson);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load workflow file');
-    } finally {
-      setLoading(false);
     }
   }, []);
 
-  // 处理拖拽上传
-  const handleDragOver = useCallback((event: React.DragEvent) => {
-    event.preventDefault();
-  }, []);
-
-  const handleDrop = useCallback((event: React.DragEvent) => {
-    event.preventDefault();
-    const file = event.dataTransfer.files[0];
-    
-    if (file && file.name.endsWith('.json')) {
-      const fakeEvent = {
-        target: { files: [file] }
-      } as unknown as React.ChangeEvent<HTMLInputElement>;
-      handleFileUpload(fakeEvent);
-    } else {
-      setError('Please drop a JSON file');
-    }
-  }, [handleFileUpload]);
 
   // 执行事件处理
   const handleExecutionStart = useCallback(() => {
@@ -155,74 +148,21 @@ function App() {
     }
   }, [workflowData]);
 
+  // 处理聊天消息发送
+  const handleChatSubmit = useCallback((e: React.FormEvent) => {
+    e.preventDefault();
+    if (!chatMessage.trim()) return;
+    
+    // TODO: 处理聊天消息
+    console.log('Chat message:', chatMessage);
+    setChatMessage('');
+  }, [chatMessage]);
+
   return (
     <div className="app">
-      {!workflowData ? (
-        <div className="app-welcome">
-          <div className="welcome-content">
-            <h1 className="welcome-title">工作流可视化执行器</h1>
-            <p className="welcome-description">
-              上传工作流JSON文件或加载示例工作流来开始可视化和执行
-            </p>
-
-            {/* 文件上传区域 */}
-            <div
-              className="upload-area"
-              onDragOver={handleDragOver}
-              onDrop={handleDrop}
-            >
-              <input
-                type="file"
-                accept=".json"
-                onChange={handleFileUpload}
-                className="upload-input"
-                id="workflow-upload"
-                disabled={loading}
-              />
-              <label htmlFor="workflow-upload" className="upload-label">
-                <Upload size={48} className="upload-icon" />
-                <span className="upload-text">
-                  {loading ? '加载中...' : '点击上传或拖拽JSON文件到这里'}
-                </span>
-                <span className="upload-hint">支持 .json 格式的工作流文件</span>
-              </label>
-            </div>
-
-            {/* 示例工作流选择 */}
-            <div className="example-section">
-              <h3>或者选择示例工作流：</h3>
-              <div className="example-workflows">
-                {EXAMPLE_WORKFLOWS.map((workflow) => (
-                  <div key={workflow.id} className="workflow-card">
-                    <div className="workflow-card-content">
-                      <h4 className="workflow-card-title">{workflow.name}</h4>
-                      <p className="workflow-card-description">{workflow.description}</p>
-                    </div>
-                    <button
-                      className="workflow-card-btn"
-                      onClick={() => loadExampleWorkflow(workflow.id)}
-                      disabled={loading}
-                    >
-                      <FileText size={16} />
-                      加载
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* 错误提示 */}
-            {error && (
-              <div className="error-message">
-                <AlertCircle size={20} />
-                {error}
-              </div>
-            )}
-          </div>
-        </div>
-      ) : (
-        <div className="app-main">
-          <div className="app-toolbar">
+      <div className="app-main">
+        <div className="app-toolbar">
+          <div className="toolbar-actions">
             <button
               className={`toolbar-btn ${copiedToClipboard ? 'success' : ''}`}
               onClick={copyWorkflowJson}
@@ -231,22 +171,54 @@ function App() {
               {copiedToClipboard ? <Check size={16} /> : <Copy size={16} />}
               {copiedToClipboard ? '已复制' : '复制JSON'}
             </button>
-            <button
-              className="toolbar-btn secondary"
-              onClick={() => setWorkflowData(null)}
-              title="返回首页"
-            >
-              返回首页
-            </button>
+            <label className="toolbar-btn upload-like">
+              <Upload size={16} /> 导入JSON
+              <input type="file" accept=".json" onChange={handleFileUpload} />
+            </label>
           </div>
-          <WorkflowExecutor
-            workflowData={workflowData}
-            onExecutionStart={handleExecutionStart}
-            onExecutionComplete={handleExecutionComplete}
-            onExecutionError={handleExecutionError}
-          />
         </div>
-      )}
+        {error && (
+          <div className="error-message inline">
+            <AlertCircle size={20} />
+            {error}
+          </div>
+        )}
+        {workflowData && (
+          <div className="workflow-container">
+            <WorkflowExecutor
+              workflowData={workflowData}
+              showControls={false}
+              showMiniMap={false}
+              singleRow={true}
+              onExecutionStart={handleExecutionStart}
+              onExecutionComplete={handleExecutionComplete}
+              onExecutionError={handleExecutionError}
+            />
+          </div>
+        )}
+        <div className="chat-container">
+          <form onSubmit={handleChatSubmit} className="chat-form">
+            <div className="chat-input-wrapper">
+              <input
+                type="text"
+                value={chatMessage}
+                onChange={(e) => setChatMessage(e.target.value)}
+                placeholder="输入消息..."
+                className="chat-input"
+              />
+              <button
+                type="submit"
+                className="chat-send-btn"
+                disabled={!chatMessage.trim()}
+                title="发送消息"
+                aria-label="发送消息"
+              >
+                <Send size={20} />
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
     </div>
   );
 }
