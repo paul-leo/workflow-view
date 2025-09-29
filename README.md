@@ -1,120 +1,160 @@
 # Workflow Visualization Application
 
-一个基于 React 的交互式工作流可视化应用，支持复杂工作流的展示、编辑和管理。
+An interactive React-based workflow visualization application for displaying and exploring complex workflows.
 
-## 🚀 技术栈
+## 🚀 Tech Stack
 
-### 前端框架与工具
-- **React 19.1.1** - 用于构建用户界面
-- **TypeScript 5.8.3** - 提供类型安全和更好的开发体验
-- **Vite 7.1.7** - 快速的构建工具和开发服务器
+### Frontend Framework & Tools
+- **React 19.1.1** - For building user interfaces
+- **TypeScript 5.8.3** - Provides type safety and better development experience
+- **Vite 7.1.7** - Fast build tool and development server
 
-### 可视化与交互
-- **React Flow 11.11.4** - 核心的节点图可视化库
-- **D3.js Types** - 数据可视化类型支持
-- **Lucide React 0.544.0** - 现代化的图标库
+### Visualization & Interaction
+- **React Flow 11.11.4** - Core node graph visualization library
+- **D3.js Types** - Data visualization type support
+- **Lucide React 0.544.0** - Modern icon library
 
-### 开发工具
-- **ESLint 9.36.0** - 代码质量检查
-- **TypeScript ESLint** - TypeScript 专用的 ESLint 规则
-- **Vite Plugin React** - React 开发支持
+### Development Tools
+- **ESLint 9.36.0** - Code quality checking
+- **TypeScript ESLint** - TypeScript-specific ESLint rules
+- **Vite Plugin React** - React development support
 
-### 部署与容器化
-- **Docker** - 容器化部署
-- **GitHub Actions** - 自动化 CI/CD
-- **Aliyun Container Registry** - 镜像存储
+### Deployment & Containerization
+- **Docker** - Containerized deployment
+- **GitHub Actions** - Automated CI/CD
+- **Aliyun Container Registry** - Image storage
 
-## 📋 Workflow Schema 设计
+## 📋 Workflow Schema Design
 
-### 核心数据结构
+### Core Data Structures
 
-#### WorkflowNode 节点定义
+#### WorkflowNode Definition
 ```typescript
 interface WorkflowNode {
-  id: string;                    // 唯一标识符
-  title: string;                 // 节点标题
+  id: string;                    // Unique identifier
+  title: string;                 // Node title
   type: 'task' | 'block' | 'condition' | 'start' | 'end' | 'agent' | 'tool' | 'trigger';
-  status?: 'pending' | 'running' | 'completed' | 'error';  // 执行状态
-  description?: string;          // 节点描述
-  children?: WorkflowNode[];     // 子节点（支持嵌套结构）
-  expanded?: boolean;            // 是否展开子节点
-  position: Position;            // 节点位置坐标
-  width?: number;                // 节点宽度
-  height?: number;               // 节点高度
-  parentId?: string;             // 父节点ID
-  isCollapsible?: boolean;       // 是否可折叠为圆点
-  collapsedRadius?: number;      // 折叠时的圆点半径
-  category?: string;             // 节点分类
-  subtitle?: string;             // 副标题
+  status?: 'pending' | 'running' | 'completed' | 'error';  // Execution status
+  description?: string;          // Node description
+  children?: WorkflowNode[];     // Child nodes (supports nested structure)
+  expanded?: boolean;            // Whether to expand child nodes
+  position: Position;            // Node position coordinates
+  width?: number;                // Node width
+  height?: number;               // Node height
+  parentId?: string;             // Parent node ID
+  isCollapsible?: boolean;       // Whether collapsible to dot form
+  collapsedRadius?: number;      // Dot radius when collapsed
+  category?: string;             // Node category
+  subtitle?: string;             // Node subtitle
 }
 ```
 
-#### Connection 连接定义
+#### Connection Definition
 ```typescript
 interface Connection {
-  id: string;                    // 连接唯一标识
-  from: string;                  // 源节点ID
-  to: string;                    // 目标节点ID
-  type?: 'success' | 'error' | 'default' | 'dashed';  // 连接类型
-  label?: string;                // 连接标签
-  animated?: boolean;            // 是否显示动画
-  isSubConnection?: boolean;     // 是否为子连接（虚线样式）
+  id: string;                    // Connection unique identifier
+  from: string;                  // Source node ID
+  to: string;                    // Target node ID
+  type?: 'success' | 'error' | 'default' | 'dashed';  // Connection type
+  label?: string;                // Connection label
+  animated?: boolean;            // Whether to show animation
+  isSubConnection?: boolean;     // Whether it's a sub-connection (dashed style)
 }
 ```
 
-#### Workflow 工作流定义
+#### Workflow Definition
 ```typescript
 interface Workflow {
-  id: string;                    // 工作流唯一标识
-  title: string;                 // 工作流标题
-  description?: string;          // 工作流描述
-  nodes: WorkflowNode[];         // 节点列表
-  connections: Connection[];     // 连接列表
+  id: string;                    // Workflow unique identifier
+  title: string;                 // Workflow title
+  description?: string;          // Workflow description
+  nodes: WorkflowNode[];         // Node list
+  connections: Connection[];     // Connection list
 }
 ```
 
-### 节点类型说明
+### Node Types
 
-| 类型 | 说明 | 图标 | 用途 |
-|------|------|------|------|
-| `trigger` | 触发器 | ⚡ | 工作流入口点，如表单提交、定时任务等 |
-| `agent` | AI代理 | 🤖 | 智能代理节点，可包含多个工具 |
-| `tool` | 工具 | ⚙️ | 具体的执行工具，如API调用、数据处理等 |
-| `task` | 任务 | ⚠️ | 普通任务节点 |
-| `condition` | 条件 | ⚠️ | 条件判断节点，支持分支流程 |
-| `block` | 块 | 📁 | 可折叠的节点组，支持嵌套结构 |
-| `start` | 开始 | ▶️ | 流程开始节点 |
-| `end` | 结束 | ✅ | 流程结束节点 |
+| Type | Description | Icon | Usage |
+|------|-------------|------|-------|
+| `trigger` | Trigger | ⚡ | Workflow entry points, such as form submissions, scheduled tasks |
+| `agent` | AI Agent | 🤖 | Intelligent agent nodes that can contain multiple tools |
+| `tool` | Tool | ⚙️ | Specific execution tools, such as API calls, data processing |
+| `task` | Task | ⚠️ | Regular task nodes |
+| `condition` | Condition | ⚠️ | Conditional judgment nodes supporting branching flows |
+| `block` | Block | 📁 | Collapsible node groups supporting nested structures |
+| `start` | Start | ▶️ | Process start node |
+| `end` | End | ✅ | Process end node |
 
-### 状态系统
+### Status System
 
-- **pending** - 等待执行
-- **running** - 正在执行（显示进度动画）
-- **completed** - 执行完成
-- **error** - 执行失败
+- **pending** - Waiting for execution
+- **running** - Currently executing (shows progress animation)
+- **completed** - Execution completed
+- **error** - Execution failed
 
-### 特殊功能
+### Special Features
 
-#### 可折叠节点
-- 支持将复杂的节点组折叠为圆点形式
-- `isCollapsible: true` 启用折叠功能
-- `expanded: false` 设置为折叠状态
-- 折叠时显示子节点数量
+#### Collapsible Nodes
+- Support collapsing complex node groups into dot form
+- `isCollapsible: true` enables collapse functionality
+- `expanded: false` sets to collapsed state
+- Shows child node count when collapsed
 
-#### 子连接
-- `isSubConnection: true` 标记为内部连接
-- 使用虚线样式区分主流程和子流程
-- 支持不同的连接类型和动画效果
+#### Sub-connections
+- `isSubConnection: true` marks as internal connections
+- Uses dashed style to distinguish main flow from sub-flows
+- Supports different connection types and animation effects
 
-## ✨ 功能特性
+## ✨ Features
 
-- 🎨 **现代化UI设计** - 支持深色主题，精美的视觉效果
-- 🔄 **实时交互** - 节点拖拽、缩放、平移等交互操作
-- 📱 **响应式布局** - 适配不同屏幕尺寸
-- 🎯 **智能布局** - 自动节点布局和连接路径优化
-- 🔀 **多样化节点** - 支持多种节点类型和状态
-- 📊 **状态可视化** - 实时显示执行状态和进度
-- 🎮 **交互控制** - 支持节点展开/折叠、点击事件等
+- 🎨 **Modern UI Design** - Dark theme support with beautiful visual effects
+- 🔍 **Interactive Exploration** - Pan, zoom, and navigate through workflows
+- 📱 **Responsive Layout** - Adapts to different screen sizes
+- 🎯 **Smart Layout** - Automatic node positioning and connection path optimization
+- 🔀 **Diverse Node Types** - Support for multiple node types and states
+- 📊 **Status Visualization** - Real-time display of execution status and progress
+- 🎮 **Interactive Controls** - Node expand/collapse, click events, and more
+- 👀 **Read-only Display** - Focus on workflow visualization and exploration
+
+## 🚀 Getting Started
+
+### Development
+
+```bash
+# Install dependencies
+npm install
+
+# Start development server
+npm run dev
+
+# Build for production
+npm run build
+
+# Preview production build
+npm run start
+```
+
+### Docker Deployment
+
+```bash
+# Build Docker image
+docker build -t workflow-view .
+
+# Run container
+docker run -p 3000:3000 workflow-view
+```
+
+The application will be available at `http://localhost:3000`
+
+### Usage
+
+1. **Explore Workflows**: Use mouse to pan and zoom around the workflow canvas
+2. **Node Interaction**: Click on nodes to view details and expand/collapse collapsible blocks
+3. **Switch Workflows**: Use the input panel to switch between different workflow examples:
+   - Type "simple" or "task" to view the Simple Task Flow
+   - Type "agent" or "ai" to view the AI Agent Workflow  
+   - Type "collapsed" or "block" to view the Collapsed Block Workflow
 
 ## React Compiler
 
