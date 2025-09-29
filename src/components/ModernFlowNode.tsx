@@ -28,7 +28,7 @@ const ModernFlowNode: React.FC<ModernFlowNodeProps> = ({
   onClick,
   isSelected = false 
 }) => {
-  const getNodeIcon = (type: string, category?: string) => {
+  const getNodeIcon = (type: string) => {
     const iconProps = { size: 20, className: 'modern-flow-node__type-icon' };
     
     switch (type) {
@@ -105,7 +105,7 @@ const ModernFlowNode: React.FC<ModernFlowNodeProps> = ({
         
         <div className="modern-flow-node__collapsed-content">
           <div className="modern-flow-node__collapsed-icon">
-            {getNodeIcon(node.type, node.category)}
+            {getNodeIcon(node.type)}
           </div>
           {node.children && (
             <div className="modern-flow-node__collapsed-count">

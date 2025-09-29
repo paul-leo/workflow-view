@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import FlowCanvas from './components/FlowCanvas'
+import ReactFlowCanvas from './components/ReactFlowCanvas'
 import InputPanel from './components/InputPanel'
 import type { Workflow, WorkflowNode } from './types/workflow'
 import { aiAgentWorkflow, simpleTaskFlow, collapsedBlockWorkflow } from './data/modernWorkflow'
@@ -7,7 +7,7 @@ import './App.css'
 
 function App() {
   const [currentWorkflow, setCurrentWorkflow] = useState<Workflow>(aiAgentWorkflow)
-  const [messages, setMessages] = useState<string[]>([])
+  const [, setMessages] = useState<string[]>([])
 
   const handleNodeToggle = (nodeId: string) => {
     const toggleNodeInWorkflow = (nodes: WorkflowNode[]): WorkflowNode[] => {
@@ -50,7 +50,7 @@ function App() {
 
   return (
     <div className="app">
-      <FlowCanvas
+      <ReactFlowCanvas
         workflow={currentWorkflow}
         onNodeClick={handleNodeClick}
         onNodeToggle={handleNodeToggle}

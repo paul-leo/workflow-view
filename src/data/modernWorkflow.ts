@@ -137,7 +137,7 @@ export const collapsedBlockWorkflow: Workflow = {
       title: 'Start Process',
       type: 'trigger',
       status: 'completed',
-      position: { x: 50, y: 100 },
+      position: { x: 100, y: 200 },
       width: 130,
       height: 40
     },
@@ -146,7 +146,7 @@ export const collapsedBlockWorkflow: Workflow = {
       title: 'Data Processing',
       type: 'block',
       status: 'running',
-      position: { x: 230, y: 100 },
+      position: { x: 300, y: 200 },
       width: 140,
       height: 40,
       isCollapsible: true,
@@ -158,7 +158,7 @@ export const collapsedBlockWorkflow: Workflow = {
           title: 'Validate Data',
           type: 'task',
           status: 'completed',
-          position: { x: 400, y: 80 },
+          position: { x: 300, y: 120 },
           width: 120,
           height: 40
         },
@@ -167,7 +167,7 @@ export const collapsedBlockWorkflow: Workflow = {
           title: 'Transform',
           type: 'task',
           status: 'running',
-          position: { x: 400, y: 130 },
+          position: { x: 300, y: 280 },
           width: 120,
           height: 40
         }
@@ -178,13 +178,16 @@ export const collapsedBlockWorkflow: Workflow = {
       title: 'Generate Output',
       type: 'task',
       status: 'pending',
-      position: { x: 420, y: 100 },
+      position: { x: 500, y: 200 },
       width: 140,
       height: 40
     }
   ],
   connections: [
     { id: 'c1', from: 'start', to: 'data-processing', type: 'default' },
-    { id: 'c2', from: 'data-processing', to: 'output', type: 'default' }
+    { id: 'c2', from: 'data-processing', to: 'output', type: 'default' },
+    // Internal connections within the block
+    { id: 'c3', from: 'data-processing', to: 'validate', type: 'dashed', isSubConnection: true },
+    { id: 'c4', from: 'validate', to: 'transform', type: 'success', isSubConnection: true }
   ]
 };

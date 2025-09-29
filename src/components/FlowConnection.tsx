@@ -22,7 +22,6 @@ const FlowConnection: React.FC<FlowConnectionProps> = ({
   // Create smooth curve path
   const createPath = () => {
     const deltaX = toX - fromX;
-    const deltaY = toY - fromY;
     
     // Control points for bezier curve
     const controlPointOffset = Math.abs(deltaX) * 0.5;

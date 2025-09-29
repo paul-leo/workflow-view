@@ -80,7 +80,7 @@ const InputPanel: React.FC<InputPanelProps> = ({
             className="input-panel__action-button"
             title="Add file"
           >
-            📎 Attach
+            Attach
           </button>
           
           <div className="input-panel__char-count">

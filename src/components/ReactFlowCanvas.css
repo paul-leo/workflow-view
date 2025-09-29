@@ -1,0 +1,162 @@
+.reactflow-canvas {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+}
+
+.reactflow-canvas .react-flow {
+  background: transparent;
+}
+
+.reactflow-canvas .react-flow__background {
+  background: transparent;
+}
+
+.workflow-info-panel {
+  background: rgba(31, 41, 59, 0.95);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(75, 85, 99, 0.3);
+  border-radius: 12px;
+  padding: 16px;
+  max-width: 300px;
+}
+
+.workflow-title {
+  margin: 0 0 8px 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: #f8fafc;
+  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.workflow-description {
+  margin: 0;
+  font-size: 14px;
+  color: #94a3b8;
+  line-height: 1.4;
+}
+
+.workflow-controls-panel {
+  display: flex;
+  gap: 8px;
+}
+
+.control-button {
+  background: rgba(31, 41, 59, 0.95);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(75, 85, 99, 0.3);
+  border-radius: 8px;
+  color: #d1d5db;
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.control-button:hover {
+  background: rgba(55, 65, 81, 0.95);
+  border-color: #6366f1;
+  color: #f8fafc;
+}
+
+.workflow-stats-panel {
+  background: rgba(31, 41, 59, 0.95);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(75, 85, 99, 0.3);
+  border-radius: 12px;
+  padding: 8px 16px;
+  display: flex;
+  gap: 16px;
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+/* React Flow Controls Styling */
+.reactflow-canvas .react-flow__controls {
+  background: rgba(31, 41, 59, 0.95);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(75, 85, 99, 0.3);
+  border-radius: 8px;
+}
+
+.reactflow-canvas .react-flow__controls button {
+  background: transparent;
+  border: none;
+  color: #d1d5db;
+  transition: color 0.2s ease;
+}
+
+.reactflow-canvas .react-flow__controls button:hover {
+  background: rgba(55, 65, 81, 0.5);
+  color: #f8fafc;
+}
+
+.reactflow-canvas .react-flow__controls button svg {
+  fill: currentColor;
+}
+
+/* Handle Styles */
+.custom-handle {
+  width: 8px;
+  height: 8px;
+  background: #6b7280;
+  border: 2px solid #1f2937;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+}
+
+.custom-handle:hover {
+  background: #6366f1;
+  transform: scale(1.3);
+}
+
+.custom-handle.react-flow__handle-connecting {
+  background: #6366f1;
+  transform: scale(1.5);
+}
+
+/* Edge Styles */
+.reactflow-canvas .react-flow__edge {
+  stroke-width: 2;
+}
+
+.reactflow-canvas .react-flow__edge.animated {
+  stroke-dasharray: 5;
+  animation: dashdraw 0.5s linear infinite;
+}
+
+@keyframes dashdraw {
+  0% {
+    stroke-dashoffset: 10;
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .workflow-info-panel {
+    padding: 12px;
+    max-width: 250px;
+  }
+  
+  .workflow-title {
+    font-size: 18px;
+  }
+  
+  .workflow-description {
+    font-size: 12px;
+  }
+  
+  .workflow-stats-panel {
+    flex-direction: column;
+    gap: 4px;
+    text-align: center;
+  }
+}
