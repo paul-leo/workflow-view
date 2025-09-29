@@ -1,16 +1,16 @@
 {
   "config": {
     "id": "agent-workflow-demo",
-    "name": "AI Agent 工具演示工作流",
+    "name": "AI Agent 简单工作流",
     "version": "1.0.0",
-    "description": "演示 AI Agent 节点如何使用多种工具进行智能处理"
+    "description": "简单的 AI Agent 工作流演示"
   },
   "nodes": [
     {
       "id": "form-trigger",
       "config": {
         "id": "form-trigger",
-        "name": "On 'Create User' form submission",
+        "name": "表单触发",
         "type": "timer-trigger"
       },
       "settings": {
@@ -22,7 +22,7 @@
           "role": "manager"
         }
       },
-      "position": { "x": 50, "y": 300 }
+      "position": { "x": 100, "y": 300 }
     },
     {
       "id": "ai-agent",
@@ -35,7 +35,7 @@
         "systemPrompt": "You are a smart assistant that processes user data and makes intelligent decisions.",
         "model": "gpt-4",
         "enableTools": true,
-        "maxToolCalls": 5
+        "maxToolCalls": 3
       },
       "tools": [
         {
@@ -60,10 +60,10 @@
       "position": { "x": 400, "y": 300 }
     },
     {
-      "id": "manager-check",
+      "id": "condition-check",
       "config": {
-        "id": "manager-check",
-        "name": "Is manager?",
+        "id": "condition-check",
+        "name": "条件判断",
         "type": "condition"
       },
       "settings": {
@@ -77,208 +77,93 @@
       "position": { "x": 700, "y": 300 }
     },
     {
-      "id": "add-to-channel",
+      "id": "http-request-1",
       "config": {
-        "id": "add-to-channel",
-        "name": "Add to channel",
+        "id": "http-request-1",
+        "name": "HTTP请求",
         "type": "http-request"
       },
       "settings": {
-        "url": "https://api.slack.com/channels/invite",
+        "url": "https://api.example.com/users",
         "method": "POST",
         "headers": {
-          "Authorization": "Bearer {{slack.token}}",
           "Content-Type": "application/json"
         },
         "body": {
-          "channel": "{{channel.id}}",
-          "user": "{{user.id}}",
-          "invite": "channel"
+          "user": "{{form-trigger.formData}}"
         }
       },
       "position": { "x": 1000, "y": 200 }
     },
     {
-      "id": "update-profile",
+      "id": "http-request-2",
       "config": {
-        "id": "update-profile",
-        "name": "Update profile",
+        "id": "http-request-2",
+        "name": "HTTP请求",
         "type": "http-request"
       },
       "settings": {
-        "url": "https://api.internal.com/users/profile",
+        "url": "https://api.example.com/profile",
         "method": "PUT",
         "headers": {
           "Content-Type": "application/json"
         },
         "body": {
-          "updateProfile": "user",
-          "userData": "{{form-trigger.formData}}"
+          "profile": "{{form-trigger.formData}}"
         }
       },
       "position": { "x": 1000, "y": 400 }
     },
     {
-      "id": "anthropic-model",
+      "id": "code-processor",
       "config": {
-        "id": "anthropic-model",
-        "name": "Anthropic Chat Model",
+        "id": "code-processor",
+        "name": "代码执行",
         "type": "code"
       },
       "settings": {
-        "code": "// Initialize Anthropic Chat Model\nconst anthropic = new Anthropic({\n  apiKey: process.env.ANTHROPIC_API_KEY\n});\n\nconst response = await anthropic.messages.create({\n  model: 'claude-3-sonnet-20240229',\n  max_tokens: 2000,\n  messages: [{ role: 'user', content: input.message }]\n});\n\nreturn { response: response.content[0].text };",
+        "code": "// Process the result\nconst result = input;\nreturn { processed: true, data: result };",
         "language": "javascript"
       },
-      "position": { "x": 200, "y": 500 }
-    },
-    {
-      "id": "postgres-memory",
-      "config": {
-        "id": "postgres-memory",
-        "name": "Postgres Chat Memory",
-        "type": "code"
-      },
-      "settings": {
-        "code": "// Store chat history in PostgreSQL\nconst { Pool } = require('pg');\nconst pool = new Pool({\n  connectionString: 'postgresql://localhost:5432/chat'\n});\n\nconst client = await pool.connect();\ntry {\n  await client.query(\n    'INSERT INTO chat_history (user_id, message, timestamp) VALUES ($1, $2, $3)',\n    [input.userId, input.message, new Date()]\n  );\n  return { success: true, stored: true };\n} finally {\n  client.release();\n}",
-        "language": "javascript"
-      },
-      "position": { "x": 400, "y": 500 }
-    },
-    {
-      "id": "microsoft-entra",
-      "config": {
-        "id": "microsoft-entra",
-        "name": "Microsoft Entra ID",
-        "type": "http-request"
-      },
-      "settings": {
-        "url": "https://graph.microsoft.com/v1.0/users",
-        "method": "GET",
-        "headers": {
-          "Authorization": "Bearer {{azure.accessToken}}",
-          "Content-Type": "application/json"
-        },
-        "params": {
-          "$select": "id,displayName,mail,userPrincipalName"
-        }
-      },
-      "position": { "x": 600, "y": 500 }
-    },
-    {
-      "id": "jira-software",
-      "config": {
-        "id": "jira-software",
-        "name": "Jira Software",
-        "type": "http-request"
-      },
-      "settings": {
-        "url": "https://company.atlassian.net/rest/api/3/user",
-        "method": "POST",
-        "headers": {
-          "Authorization": "Basic {{jira.auth}}",
-          "Content-Type": "application/json"
-        },
-        "body": {
-          "emailAddress": "{{user.email}}",
-          "displayName": "{{user.name}}",
-          "products": ["jira-software"]
-        }
-      },
-      "position": { "x": 800, "y": 500 }
-    },
-    {
-      "id": "data-processor",
-      "config": {
-        "id": "data-processor",
-        "name": "Data Processing",
-        "type": "code"
-      },
-      "settings": {
-        "code": "// Process and validate user data\nconst userData = input.formData;\n\n// Validate email format\nconst emailRegex = /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/;\nif (!emailRegex.test(userData.email)) {\n  throw new Error('Invalid email format');\n}\n\n// Transform data\nconst processedData = {\n  ...userData,\n  email: userData.email.toLowerCase(),\n  name: userData.name.trim(),\n  createdAt: new Date().toISOString(),\n  isManager: userData.role === 'manager'\n};\n\nreturn { processedData };",
-        "language": "javascript"
-      },
-      "position": { "x": 250, "y": 300 }
-    },
-    {
-      "id": "notification-sender",
-      "config": {
-        "id": "notification-sender",
-        "name": "Send Notification",
-        "type": "code"
-      },
-      "settings": {
-        "code": "// Send notification based on user role\nconst { isManager, name, email } = input.processedData;\n\nconst notificationMessage = isManager \n  ? `Welcome ${name}! You have been added to the management channel.`\n  : `Hello ${name}! Your profile has been updated successfully.`;\n\n// Simulate sending notification\nconsole.log(`Sending notification to ${email}: ${notificationMessage}`);\n\nreturn {\n  notificationSent: true,\n  message: notificationMessage,\n  recipient: email\n};",
-        "language": "javascript"
-      },
-      "position": { "x": 1200, "y": 300 }
+      "position": { "x": 1300, "y": 300 }
     }
   ],
   "connections": [
     {
-      "id": "form-to-processor",
+      "id": "form-to-agent",
       "sourceNodeId": "form-trigger",
-      "targetNodeId": "data-processor",
-      "branchIndex": 0
-    },
-    {
-      "id": "processor-to-agent",
-      "sourceNodeId": "data-processor",
       "targetNodeId": "ai-agent",
       "branchIndex": 0
     },
     {
       "id": "agent-to-condition",
       "sourceNodeId": "ai-agent",
-      "targetNodeId": "manager-check",
+      "targetNodeId": "condition-check",
       "branchIndex": 0
     },
     {
-      "id": "manager-true-channel",
-      "sourceNodeId": "manager-check",
-      "targetNodeId": "add-to-channel",
+      "id": "condition-true",
+      "sourceNodeId": "condition-check",
+      "targetNodeId": "http-request-1",
       "branchIndex": 0
     },
     {
-      "id": "manager-false-profile",
-      "sourceNodeId": "manager-check",
-      "targetNodeId": "update-profile",
+      "id": "condition-false",
+      "sourceNodeId": "condition-check",
+      "targetNodeId": "http-request-2",
       "branchIndex": 1
     },
     {
-      "id": "channel-to-notification",
-      "sourceNodeId": "add-to-channel",
-      "targetNodeId": "notification-sender",
+      "id": "request1-to-code",
+      "sourceNodeId": "http-request-1",
+      "targetNodeId": "code-processor",
       "branchIndex": 0
     },
     {
-      "id": "profile-to-notification",
-      "sourceNodeId": "update-profile",
-      "targetNodeId": "notification-sender",
+      "id": "request2-to-code",
+      "sourceNodeId": "http-request-2",
+      "targetNodeId": "code-processor",
       "branchIndex": 0
-    },
-    {
-      "id": "agent-to-anthropic",
-      "sourceNodeId": "ai-agent",
-      "targetNodeId": "anthropic-model",
-      "branchIndex": 1
-    },
-    {
-      "id": "agent-to-memory",
-      "sourceNodeId": "ai-agent",
-      "targetNodeId": "postgres-memory",
-      "branchIndex": 2
-    },
-    {
-      "id": "agent-to-entra",
-      "sourceNodeId": "ai-agent",
-      "targetNodeId": "microsoft-entra",
-      "branchIndex": 3
-    },
-    {
-      "id": "agent-to-jira",
-      "sourceNodeId": "ai-agent",
-      "targetNodeId": "jira-software",
-      "branchIndex": 4
     }
   ]
 }
