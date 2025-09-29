@@ -1,7 +1,6 @@
-import React, { useState } from 'react';
-import { Bot, Wrench, Zap, CheckCircle, XCircle, Clock } from 'lucide-react';
+import React from 'react';
+import { Bot } from 'lucide-react';
 import { BaseNodeRenderer, type BaseNodeRendererProps } from './BaseNodeRenderer';
-import { AgentSubFlow } from './AgentSubFlow';
 import './AgentNodeRenderer.css';
 
 // Agent节点渲染器属性
@@ -41,96 +40,7 @@ export interface AgentNodeRendererProps extends Omit<BaseNodeRendererProps, 'hea
 export const AgentNodeRenderer: React.FC<AgentNodeRendererProps> = (props) => {
   const { data, ...restProps } = props;
   const tools = data.tools || [];
-  const toolCalls = data.toolCalls || [];
   const settings = data.settings || {};
-  
-  // 控制子流显示状态
-  const [showSubFlow] = useState(false);
-  const [activeTools, setActiveTools] = useState<string[]>([]);
-
-  // 处理工具点击
-  const handleToolClick = (toolId: string) => {
-    console.log('Tool clicked:', toolId);
-    // 切换工具激活状态
-    setActiveTools(prev => 
-      prev.includes(toolId) 
-        ? prev.filter(id => id !== toolId)
-        : [...prev, toolId]
-    );
-  };
-
-  // 渲染工具列表
-  const renderTools = () => {
-    if (tools.length === 0) return null;
-
-    return (
-      <div className="agent-tools-section">
-        <div className="agent-tools-header">
-          <Wrench size={12} />
-          <span>工具 ({tools.length})</span>
-        </div>
-        <div className="agent-tools-list">
-          {tools.slice(0, 3).map((tool) => (
-            <div 
-              key={tool.id} 
-              className={`agent-tool-item ${activeTools.includes(tool.id) ? 'active' : ''} clickable`}
-              onClick={() => handleToolClick(tool.id)}
-            >
-              <div className="agent-tool-icon">
-                {tool.icon || <Zap size={10} />}
-              </div>
-              <div className="agent-tool-info">
-                <div className="agent-tool-name">{tool.name}</div>
-                {tool.category && (
-                  <div className="agent-tool-category">{tool.category}</div>
-                )}
-              </div>
-              {activeTools.includes(tool.id) && (
-                <div className="agent-tool-status">
-                  <CheckCircle size={10} className="active" />
-                </div>
-              )}
-            </div>
-          ))}
-          {tools.length > 3 && (
-            <div className="agent-tools-more">
-              +{tools.length - 3} 更多
-            </div>
-          )}
-        </div>
-      </div>
-    );
-  };
-
-  // 渲染最近的工具调用
-  const renderRecentToolCalls = () => {
-    if (toolCalls.length === 0) return null;
-
-    const recentCalls = toolCalls.slice(-2); // 显示最近2次调用
-
-    return (
-      <div className="agent-tool-calls-section">
-        <div className="agent-tool-calls-header">
-          <Clock size={12} />
-          <span>最近调用</span>
-        </div>
-        <div className="agent-tool-calls-list">
-          {recentCalls.map((call, index) => (
-            <div key={`${call.toolId}-${call.timestamp}-${index}`} className="agent-tool-call-item">
-              <div className="agent-tool-call-status">
-                {call.result.success ? (
-                  <CheckCircle size={10} className="success" />
-                ) : (
-                  <XCircle size={10} className="error" />
-                )}
-              </div>
-              <div className="agent-tool-call-name">{call.toolName}</div>
-            </div>
-          ))}
-        </div>
-      </div>
-    );
-  };
 
   // 渲染节点内容
   const renderAgentContent = () => {
@@ -153,32 +63,22 @@ export const AgentNodeRenderer: React.FC<AgentNodeRendererProps> = (props) => {
     );
   };
 
-
   return (
     <BaseNodeRenderer
       {...restProps}
       data={data}
       header={{
-        title: data.name,
-        icon: <Bot size={16} />,
-        backgroundColor: '#8B5CF6', // 紫色主题
+        title: 'AI Agent',
+        icon: <Bot size={14} />,
+        backgroundColor: '#8B5CF6',
         showStatus: true
       }}
       content={{
         customContent: renderAgentContent()
       }}
-      handles={{
-        showInput: true,
-        showOutput: true
-      }}
       styling={{
-        borderColor: props.selected ? '#8B5CF6' : '#E5E7EB',
-        backgroundColor: '#FFFFFF',
-        minWidth: showSubFlow ? 400 : 280,
-        maxWidth: showSubFlow ? 500 : 320,
         className: 'agent-node-renderer'
       }}
-      className={`agent-node ${props.className || ''}`}
     />
   );
 };
