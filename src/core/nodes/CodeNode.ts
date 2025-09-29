@@ -6,12 +6,12 @@ export interface CodeNodeInput extends Record<string, unknown> {
 }
 
 // 代码节点的输出类型
-export interface CodeNodeOutput {
+export interface CodeNodeOutput extends Record<string, unknown> {
   result: unknown;
 }
 
 // 代码节点的设置类型
-export interface CodeNodeSettings {
+export interface CodeNodeSettings extends Record<string, unknown> {
   code: string; // JavaScript代码
 }
 
@@ -30,7 +30,8 @@ export class CodeNode extends BaseNode<CodeNodeInput, CodeNodeOutput, CodeNodeSe
 
   public async execute(
     inputs: CodeNodeInput,
-    context: NodeExecutionContext
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    _: NodeExecutionContext
   ): Promise<NodeExecutionResult<CodeNodeOutput>> {
     try {
       // 创建函数执行用户代码

@@ -7,7 +7,7 @@ export interface AgentNodeInput extends Record<string, unknown> {
 }
 
 // Agent节点的输出类型
-export interface AgentNodeOutput {
+export interface AgentNodeOutput extends Record<string, unknown> {
   response: string;
   metadata: {
     tokensUsed: number;
@@ -16,7 +16,7 @@ export interface AgentNodeOutput {
 }
 
 // Agent节点的设置类型
-export interface AgentNodeSettings {
+export interface AgentNodeSettings extends Record<string, unknown> {
   systemPrompt: string;
   model: string;
 }
@@ -36,7 +36,8 @@ export class AgentNode extends BaseNode<AgentNodeInput, AgentNodeOutput, AgentNo
 
   public async execute(
     inputs: AgentNodeInput,
-    context: NodeExecutionContext
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    _: NodeExecutionContext
   ): Promise<NodeExecutionResult<AgentNodeOutput>> {
     const startTime = Date.now();
     

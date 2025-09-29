@@ -1,18 +1,16 @@
 import { BaseNode, type NodeExecutionContext, type NodeExecutionResult } from '../abstract/BaseNode';
 
 // 定时触发节点的输入类型
-export interface TimerTriggerInput extends Record<string, unknown> {
-  // 触发器节点通常不需要输入
-}
+export type TimerTriggerInput = Record<string, unknown>;
 
 // 定时触发节点的输出类型
-export interface TimerTriggerOutput {
+export interface TimerTriggerOutput extends Record<string, unknown> {
   timestamp: number;
   data: Record<string, unknown>;
 }
 
 // 定时触发节点的设置类型
-export interface TimerTriggerSettings {
+export interface TimerTriggerSettings extends Record<string, unknown> {
   interval: number; // 间隔时间（毫秒）
 }
 

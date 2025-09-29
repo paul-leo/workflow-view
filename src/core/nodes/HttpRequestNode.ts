@@ -9,14 +9,14 @@ export interface HttpRequestInput extends Record<string, unknown> {
 }
 
 // HTTP请求节点的输出类型
-export interface HttpRequestOutput {
+export interface HttpRequestOutput extends Record<string, unknown> {
   status: number;
   data: unknown;
   success: boolean;
 }
 
 // HTTP请求节点的设置类型
-export interface HttpRequestSettings {
+export interface HttpRequestSettings extends Record<string, unknown> {
   timeout: number; // 超时时间（毫秒）
 }
 
@@ -35,7 +35,8 @@ export class HttpRequestNode extends BaseNode<HttpRequestInput, HttpRequestOutpu
 
   public async execute(
     inputs: HttpRequestInput,
-    context: NodeExecutionContext
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    _: NodeExecutionContext
   ): Promise<NodeExecutionResult<HttpRequestOutput>> {
     try {
       const response = await fetch(inputs.url, {
