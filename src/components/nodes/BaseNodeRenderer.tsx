@@ -233,13 +233,13 @@ export const BaseNodeRenderer: React.FC<BaseNodeRendererProps> = ({
   );
 };
 
-// 获取状态标签
+// Get status labels
 function getStatusLabel(status: string): string {
   const labels: Record<string, string> = {
-    'pending': '等待中',
-    'running': '运行中',
-    'completed': '已完成',
-    'error': '错误'
+    'pending': 'Pending',
+    'running': 'Running',
+    'completed': 'Completed',
+    'error': 'Error'
   };
   return labels[status] || status;
 }
@@ -249,18 +249,18 @@ export const NodeRendererUtils = {
   getStatusLabel,
   STATUS_COLORS,
   
-  // 格式化持续时间
+  // Format duration
   formatDuration: (ms: number): string => {
     const seconds = ms / 1000;
     const minutes = seconds / 60;
     const hours = minutes / 60;
     
     if (hours >= 1) {
-      return `${Math.round(hours)}小时`;
+      return `${Math.round(hours)}h`;
     } else if (minutes >= 1) {
-      return `${Math.round(minutes)}分钟`;
+      return `${Math.round(minutes)}m`;
     } else {
-      return `${Math.round(seconds)}秒`;
+      return `${Math.round(seconds)}s`;
     }
   },
 

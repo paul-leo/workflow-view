@@ -15,26 +15,26 @@ import agentWorkflow from './core/examples/agent-workflow-example.json';
 const EXAMPLE_WORKFLOWS = [
   {
     id: 'agent-workflow',
-    name: 'AI Agent 工具演示工作流',
-    description: '演示 AI Agent 节点如何使用多种工具进行智能处理',
+    name: 'AI Agent Tool Demo Workflow',
+    description: 'Demonstrates how AI Agent nodes use multiple tools for intelligent processing',
     data: agentWorkflow
   },
   {
     id: 'data-scraping',
-    name: '数据抓取与分析工作流',
-    description: '自动抓取比特币价格数据，进行分析并在价格波动超过阈值时发送警报通知',
+    name: 'Data Scraping & Analysis Workflow',
+    description: 'Automatically scrape Bitcoin price data, analyze it and send alerts when price fluctuations exceed threshold',
     data: dataScraping
   },
   {
     id: 'content-generation',
-    name: '内容生成工作流',
-    description: '基于用户输入生成高质量内容的自动化工作流',
+    name: 'Content Generation Workflow',
+    description: 'Automated workflow for generating high-quality content based on user input',
     data: contentGeneration
   },
   {
     id: 'order-processing',
-    name: '订单处理工作流',
-    description: '自动化订单处理流程，包括验证、支付和发货',
+    name: 'Order Processing Workflow',
+    description: 'Automated order processing flow including validation, payment and shipping',
     data: orderProcessing
   }
 ] as const;

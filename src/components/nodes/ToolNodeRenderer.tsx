@@ -29,14 +29,14 @@ const getToolIcon = (toolId: string) => {
   return iconMap[toolId] || <Zap size={14} />;
 };
 
-// 工具分类颜色映射
+// Tool category color mapping
 const getCategoryColor = (category?: string) => {
   const colorMap: Record<string, string> = {
-    '数学': '#F59E0B',
-    '搜索': '#3B82F6',
-    '开发': '#10B981',
-    '文本': '#8B5CF6',
-    '工具': '#6B7280',
+    'Math': '#F59E0B',
+    'Search': '#3B82F6',
+    'Development': '#10B981',
+    'Text': '#8B5CF6',
+    'Tool': '#6B7280',
   };
   
   return colorMap[category || ''] || '#6B7280';
@@ -56,14 +56,14 @@ export const ToolNodeRenderer: React.FC<ToolNodeRendererProps> = (props) => {
         {...restProps}
         data={data}
         header={{
-          title: '未知工具',
+          title: 'Unknown Tool',
           icon: <Wrench size={14} />,
           backgroundColor: '#6B7280',
           showStatus: true
         }}
         content={{
           title: data.name,
-          subtitle: '工具信息缺失'
+          subtitle: 'Tool Info Missing'
         }}
         styling={{
           className: 'tool-node-renderer tool-node-error'

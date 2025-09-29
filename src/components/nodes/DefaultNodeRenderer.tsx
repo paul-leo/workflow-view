@@ -112,28 +112,28 @@ function getNodeTypeLabel(type: string): string {
   const NodeConstructor = NodeRegistry.getNodeConstructor(type);
   
   if (NodeConstructor) {
-    // 如果找到了构造函数，尝试获取更友好的名称
+    // If constructor found, try to get friendly names
     const typeLabels: Record<string, string> = {
-      'timer-trigger': '定时触发',
-      'http-request': 'HTTP请求',
-      'code': '代码执行',
-      'agent': 'AI智能体',
-      'condition': '条件判断'
+      'timer-trigger': 'Timer Trigger',
+      'http-request': 'HTTP Request',
+      'code': 'Code Execution',
+      'agent': 'AI Agent',
+      'condition': 'Condition'
     };
     
     return typeLabels[type] || type.toUpperCase();
   }
   
-  // 回退到默认标签
+  // Fallback to default labels
   const fallbackLabels: Record<string, string> = {
-    'trigger': '触发器',
-    'task': '任务',
-    'condition': '条件',
-    'start': '开始',
-    'end': '结束',
-    'agent': 'AI智能体',
-    'tool': '工具',
-    'unknown': '未知'
+    'trigger': 'Trigger',
+    'task': 'Task',
+    'condition': 'Condition',
+    'start': 'Start',
+    'end': 'End',
+    'agent': 'AI Agent',
+    'tool': 'Tool',
+    'unknown': 'Unknown'
   };
   
   return fallbackLabels[type] || type.toUpperCase();
