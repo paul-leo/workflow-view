@@ -1,0 +1,300 @@
+.flow-node {
+  position: absolute;
+  background: white;
+  border: 2px solid #e2e8f0;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  min-width: 180px;
+  max-width: 280px;
+  overflow: hidden;
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+}
+
+.flow-node:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  border-color: #3b82f6;
+}
+
+.flow-node--selected {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+
+.flow-node--clickable {
+  cursor: pointer;
+}
+
+/* Node Types */
+.flow-node--start {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  border-color: #059669;
+}
+
+.flow-node--end {
+  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+  color: white;
+  border-color: #7c3aed;
+}
+
+.flow-node--task {
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  border-color: #cbd5e1;
+}
+
+.flow-node--condition {
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+  color: white;
+  border-color: #f59e0b;
+}
+
+.flow-node--block {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: white;
+  border-color: #2563eb;
+}
+
+/* Status Variations */
+.flow-node--status-running {
+  animation: pulse-running 2s infinite;
+}
+
+.flow-node--status-error {
+  border-color: #ef4444;
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
+}
+
+.flow-node--status-completed {
+  border-color: #10b981;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+}
+
+/* Connection Handles */
+.flow-node__handle {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  background: #3b82f6;
+  border: 2px solid white;
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  transition: all 0.2s ease;
+}
+
+.flow-node__handle--input {
+  top: 50%;
+  left: -6px;
+  transform: translateY(-50%);
+}
+
+.flow-node__handle--output {
+  top: 50%;
+  right: -6px;
+  transform: translateY(-50%);
+}
+
+.flow-node:hover .flow-node__handle {
+  transform: scale(1.2) translateY(-50%);
+  background: #1d4ed8;
+}
+
+/* Node Header */
+.flow-node__header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  position: relative;
+}
+
+.flow-node__icon-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  flex-shrink: 0;
+}
+
+.flow-node--task .flow-node__icon-container {
+  background: #f1f5f9;
+}
+
+.flow-node__type-icon {
+  color: currentColor;
+}
+
+.flow-node__title-container {
+  flex: 1;
+  min-width: 0;
+}
+
+.flow-node__title {
+  margin: 0 0 4px 0;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.2;
+  color: currentColor;
+  word-break: break-word;
+}
+
+.flow-node__status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  opacity: 0.9;
+}
+
+.flow-node__status-icon {
+  flex-shrink: 0;
+}
+
+.flow-node__status-text {
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.flow-node__toggle {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: currentColor;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  flex-shrink: 0;
+}
+
+.flow-node__toggle:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(1.1);
+}
+
+/* Node Content */
+.flow-node__content {
+  padding: 0 16px 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  margin-top: -1px;
+}
+
+.flow-node--task .flow-node__content {
+  border-top-color: #e2e8f0;
+}
+
+.flow-node__description {
+  margin: 12px 0 0 0;
+  font-size: 14px;
+  line-height: 1.4;
+  color: currentColor;
+  opacity: 0.8;
+  word-break: break-word;
+}
+
+/* Progress Indicator */
+.flow-node__progress {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.2);
+  overflow: hidden;
+}
+
+.flow-node__progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+  animation: progress-slide 2s infinite;
+}
+
+/* Animations */
+@keyframes pulse-running {
+  0%, 100% {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+  50% {
+    box-shadow: 0 8px 24px rgba(59, 130, 246, 0.3);
+  }
+}
+
+@keyframes progress-slide {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(400%);
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .flow-node {
+    min-width: 160px;
+    max-width: 240px;
+  }
+  
+  .flow-node__header {
+    padding: 12px;
+  }
+  
+  .flow-node__title {
+    font-size: 14px;
+  }
+  
+  .flow-node__description {
+    font-size: 12px;
+  }
+  
+  .flow-node__icon-container {
+    width: 32px;
+    height: 32px;
+  }
+  
+  .flow-node__type-icon {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+/* High Contrast Mode */
+@media (prefers-contrast: high) {
+  .flow-node {
+    border-width: 3px;
+  }
+  
+  .flow-node__handle {
+    border-width: 3px;
+  }
+}
+
+/* Dynamic positioning styles */
+.flow-node--positioned {
+  position: absolute;
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  .flow-node {
+    transition: none;
+  }
+  
+  .flow-node--status-running {
+    animation: none;
+  }
+  
+  .flow-node__progress-bar {
+    animation: none;
+  }
+}
