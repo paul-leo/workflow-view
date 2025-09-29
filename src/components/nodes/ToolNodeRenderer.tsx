@@ -75,32 +75,14 @@ export const ToolNodeRenderer: React.FC<ToolNodeRendererProps> = (props) => {
   const categoryColor = getCategoryColor(toolInfo.category);
   const toolIcon = getToolIcon(toolInfo.id);
 
-  // 渲染工具内容
+  // 渲染工具内容（简化版）
   const renderToolContent = () => {
     return (
-      <div className="tool-node-content">
-        {/* 工具描述 */}
-        <div className="tool-description">
-          {toolInfo.description}
-        </div>
-
-        {/* 工具分类 */}
+      <div className="tool-node-content-compact">
+        {/* 只显示分类标签 */}
         {toolInfo.category && (
-          <div className="tool-category">
-            <div 
-              className="tool-category-badge"
-              data-category={toolInfo.category}
-            >
-              {toolInfo.category}
-            </div>
-          </div>
-        )}
-
-        {/* 父 Agent 信息 */}
-        {toolInfo.parentAgentId && (
-          <div className="tool-parent-info">
-            <span className="tool-parent-label">来自:</span>
-            <span className="tool-parent-name">{toolInfo.parentAgentId}</span>
+          <div className="tool-category-compact">
+            {toolInfo.category}
           </div>
         )}
       </div>

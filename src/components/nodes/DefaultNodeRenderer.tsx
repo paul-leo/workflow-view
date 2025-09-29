@@ -26,41 +26,14 @@ export interface NodeRendererProps {
 export const DefaultNodeRenderer: React.FC<NodeRendererProps> = (props) => {
   const { data } = props;
 
-  // 渲染节点详细信息
+  // 渲染节点详细信息（简化版）
   const renderDetails = () => {
-    if (!data.settings || Object.keys(data.settings).length === 0) {
-      return (
-        <div className="node-detail">
-          <span className="node-detail-label">类型:</span>{' '}
-          <span className="node-detail-value">{data.type}</span>
-        </div>
-      );
-    }
-
-    // 显示前几个设置项
-    const settingsEntries = Object.entries(data.settings).slice(0, 3);
-    
+    // 只显示节点类型，更简洁
     return (
-      <div className="default-node-details">
-        <div className="node-detail">
-          <span className="node-detail-label">类型:</span>{' '}
-          <span className="node-detail-value">{data.type}</span>
+      <div className="default-node-details-compact">
+        <div className="node-type-compact">
+          {data.type}
         </div>
-        {settingsEntries.map(([key, value]) => (
-          <div key={key} className="node-detail">
-            <span className="node-detail-label">{formatSettingKey(key)}:</span>{' '}
-            <span className="node-detail-value">
-              {formatSettingValue(value)}
-            </span>
-          </div>
-        ))}
-        {Object.keys(data.settings).length > 3 && (
-          <div className="node-detail">
-            <span className="node-detail-value">
-              ...还有 {Object.keys(data.settings).length - 3} 项配置
-            </span>
-          </div>
-        )}
       </div>
     );
   };

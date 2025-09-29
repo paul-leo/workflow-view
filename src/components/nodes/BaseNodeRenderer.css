@@ -1,4 +1,32 @@
 /* 基础节点渲染器样式 */
+
+/* 紧凑版节点样式 */
+.default-node-details-compact {
+  text-align: center;
+}
+
+.node-type-compact {
+  font-size: 10px;
+  color: #9CA3AF;
+  background: #F9FAFB;
+  padding: 2px 6px;
+  border-radius: 8px;
+  display: inline-block;
+}
+
+.tool-node-content-compact {
+  text-align: center;
+}
+
+.tool-category-compact {
+  font-size: 10px;
+  color: #6B7280;
+  background: #F3F4F6;
+  padding: 2px 6px;
+  border-radius: 8px;
+  display: inline-block;
+}
+
 .base-node-renderer {
   border: 2px solid #E5E7EB;
   border-radius: 8px;

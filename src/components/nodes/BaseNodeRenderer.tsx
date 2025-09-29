@@ -100,8 +100,8 @@ export const BaseNodeRenderer: React.FC<BaseNodeRendererProps> = ({
   const defaultStyling = {
     borderColor: selected ? defaultHeader.backgroundColor : '#E5E7EB',
     backgroundColor: '#FFFFFF',
-    minWidth: 200,
-    maxWidth: 280,
+    minWidth: 140,  // 减小最小宽度
+    maxWidth: 200,  // 减小最大宽度
     ...styling
   };
 

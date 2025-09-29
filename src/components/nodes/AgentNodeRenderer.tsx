@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Bot, Wrench, Zap, CheckCircle, XCircle, Clock, Expand, Minimize } from 'lucide-react';
+import { Bot, Wrench, Zap, CheckCircle, XCircle, Clock } from 'lucide-react';
 import { BaseNodeRenderer, type BaseNodeRendererProps } from './BaseNodeRenderer';
 import { AgentSubFlow } from './AgentSubFlow';
 import './AgentNodeRenderer.css';
@@ -45,7 +45,7 @@ export const AgentNodeRenderer: React.FC<AgentNodeRendererProps> = (props) => {
   const settings = data.settings || {};
   
   // 控制子流显示状态
-  const [showSubFlow, setShowSubFlow] = useState(false);
+  const [showSubFlow] = useState(false);
   const [activeTools, setActiveTools] = useState<string[]>([]);
 
   // 处理工具点击
@@ -136,52 +136,19 @@ export const AgentNodeRenderer: React.FC<AgentNodeRendererProps> = (props) => {
   const renderAgentContent = () => {
     return (
       <div className="agent-node-content">
-        {/* 模型信息 */}
+        {/* 简化的工具信息 */}
+        {settings.enableTools && tools.length > 0 && (
+          <div className="agent-tools-summary">
+            <span className="tools-count">{tools.length} Tools</span>
+          </div>
+        )}
+        
+        {/* 模型信息（简化显示） */}
         {settings.model && (
-          <div className="agent-model-info">
-            <span className="agent-model-label">模型:</span>
-            <span className="agent-model-name">{settings.model}</span>
+          <div className="agent-model-compact">
+            {settings.model}
           </div>
         )}
-
-        {/* 工具状态 */}
-        {settings.enableTools && (
-          <div className="agent-tools-status">
-            <Wrench size={12} />
-            <span>工具已启用</span>
-            {settings.maxToolCalls && (
-              <span className="agent-max-calls">
-                (最多 {settings.maxToolCalls} 次)
-              </span>
-            )}
-            {/* {tools.length > 0 && (
-              <button 
-                className="agent-subflow-toggle"
-                onClick={() => setShowSubFlow(!showSubFlow)}
-                title={showSubFlow ? '收起工具视图' : '展开工具视图'}
-              >
-                {showSubFlow ? <Minimize size={12} /> : <Expand size={12} />}
-              </button>
-            )} */}
-          </div>
-        )}
-
-        {/* 子流工具视图 */}
-        {showSubFlow && tools.length > 0 && (
-          <div className="agent-subflow-section">
-            <AgentSubFlow
-              tools={tools}
-              activeTools={activeTools}
-              onToolClick={handleToolClick}
-            />
-          </div>
-        )}
-
-        {/* 传统工具列表（当子流未展开时显示） */}
-        {!showSubFlow && renderTools()}
-
-        {/* 最近工具调用 */}
-        {renderRecentToolCalls()}
       </div>
     );
   };
