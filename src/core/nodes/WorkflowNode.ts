@@ -254,11 +254,11 @@ export class WorkflowNode extends BaseNode<WorkflowNodeInput, WorkflowNodeOutput
     if (!path || !obj || typeof obj !== 'object') return obj;
     
     const parts = path.split('.');
-    let current = obj;
+    let current: unknown = obj;
     
     for (const part of parts) {
       if (current == null || typeof current !== 'object') return undefined;
-      current = (current as Record<string, unknown>)[part] as unknown;
+      current = (current as Record<string, unknown>)[part];
     }
     
     return current;

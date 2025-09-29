@@ -29,8 +29,7 @@ export const ToolConnectionEdge: React.FC<ToolConnectionEdgeProps> = ({
   targetPosition,
   style = {},
   markerEnd,
-  data,
-  selected
+  data
 }) => {
   const [edgePath, labelX, labelY] = getBezierPath({
     sourceX,
