@@ -102,12 +102,14 @@ export const AgentNodeRenderer: React.FC<AgentNodeRendererProps> = (props) => {
       {...restProps}
       data={data}
       header={{
-        title: data.name,
-        icon: <Bot size={16} />,
+        title: '', // 不显示文字标题，只用图标
+        icon: <Bot size={20} />,
         backgroundColor: '#8B5CF6', // 紫色主题
         showStatus: true
       }}
       content={{
+        title: data.name,
+        subtitle: 'AI AGENT',
         customContent: renderAgentContent()
       }}
       handles={{
@@ -115,10 +117,10 @@ export const AgentNodeRenderer: React.FC<AgentNodeRendererProps> = (props) => {
         showOutput: true
       }}
       styling={{
-        borderColor: props.selected ? '#8B5CF6' : '#E5E7EB',
-        backgroundColor: '#FFFFFF',
-        minWidth: 280,
-        maxWidth: 320,
+        borderColor: props.selected ? '#60A5FA' : '#374151',
+        backgroundColor: '#1F2937',
+        minWidth: 200,
+        maxWidth: 240,
         className: 'agent-node-renderer'
       }}
       className={`agent-node ${props.className || ''}`}

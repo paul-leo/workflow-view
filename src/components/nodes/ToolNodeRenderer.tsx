@@ -94,12 +94,14 @@ export const ToolNodeRenderer: React.FC<ToolNodeRendererProps> = (props) => {
       {...restProps}
       data={data}
       header={{
-        title: toolInfo.name,
+        title: '', // 不显示文字标题，只用图标
         icon: toolIcon,
         backgroundColor: categoryColor,
         showStatus: true
       }}
       content={{
+        title: toolInfo.name,
+        subtitle: toolInfo.category?.toUpperCase() || 'TOOL',
         customContent: renderToolContent()
       }}
       handles={{
@@ -107,10 +109,10 @@ export const ToolNodeRenderer: React.FC<ToolNodeRendererProps> = (props) => {
         showOutput: false  // 工具节点不需要输出连接点
       }}
       styling={{
-        borderColor: props.selected ? categoryColor : '#E5E7EB',
-        backgroundColor: '#FFFFFF',
-        minWidth: 180,
-        maxWidth: 220,
+        borderColor: props.selected ? '#60A5FA' : '#374151',
+        backgroundColor: '#1F2937',
+        minWidth: 160,
+        maxWidth: 200,
         className: 'tool-node-renderer'
       }}
       className={`tool-node ${props.className || ''}`}
