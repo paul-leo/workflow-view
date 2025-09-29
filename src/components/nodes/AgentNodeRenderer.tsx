@@ -154,7 +154,7 @@ export const AgentNodeRenderer: React.FC<AgentNodeRendererProps> = (props) => {
                 (最多 {settings.maxToolCalls} 次)
               </span>
             )}
-            {tools.length > 0 && (
+            {/* {tools.length > 0 && (
               <button 
                 className="agent-subflow-toggle"
                 onClick={() => setShowSubFlow(!showSubFlow)}
@@ -162,7 +162,7 @@ export const AgentNodeRenderer: React.FC<AgentNodeRendererProps> = (props) => {
               >
                 {showSubFlow ? <Minimize size={12} /> : <Expand size={12} />}
               </button>
-            )}
+            )} */}
           </div>
         )}
 
@@ -170,7 +170,6 @@ export const AgentNodeRenderer: React.FC<AgentNodeRendererProps> = (props) => {
         {showSubFlow && tools.length > 0 && (
           <div className="agent-subflow-section">
             <AgentSubFlow
-              agentId={data.id}
               tools={tools}
               activeTools={activeTools}
               onToolClick={handleToolClick}

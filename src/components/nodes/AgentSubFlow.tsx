@@ -78,14 +78,21 @@ const ToolNode: React.FC<{ data: ToolNodeData }> = ({ data }) => {
   );
 };
 
+// 简单的工作流节点组件（用于兜底）
+const SimpleWorkflowNode: React.FC<{ data: { name?: string; label?: string } }> = ({ data }) => (
+  <div className="simple-workflow-node">
+    {data.name || data.label || 'Node'}
+  </div>
+);
+
 // 节点类型定义
 const nodeTypes = {
   toolNode: ToolNode,
+  workflowNode: SimpleWorkflowNode, // 添加 workflowNode 支持以防止错误
 };
 
 // Agent 子流组件属性
 export interface AgentSubFlowProps {
-  agentId: string;
   tools: Array<{
     id: string;
     name: string;
@@ -102,7 +109,6 @@ export interface AgentSubFlowProps {
  * 在 Agent 节点内部显示工具的小型 ReactFlow
  */
 export const AgentSubFlow: React.FC<AgentSubFlowProps> = ({
-  agentId,
   tools,
   activeTools = [],
   onToolClick,
@@ -192,7 +198,7 @@ export const AgentSubFlow: React.FC<AgentSubFlowProps> = ({
       initialNodes: allNodes, 
       initialEdges: toolEdges 
     };
-  }, [tools, activeTools, agentId]);
+  }, [tools, activeTools]); // 移除不必要的 agentId 依赖
 
   const [nodes, , onNodesChange] = useNodesState(initialNodes);
   const [edges, , onEdgesChange] = useEdgesState(initialEdges);
