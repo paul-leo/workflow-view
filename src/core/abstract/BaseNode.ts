@@ -1,62 +1,41 @@
-import { z } from 'zod';
-
-// 运行时类型验证的基础接口
-export interface RuntimeSchema<T = any> {
-  schema: z.ZodSchema<T>;
-  validate(data: unknown): T;
-  isValid(data: unknown): boolean;
-}
-
-// 创建运行时 Schema 的工厂函数
-export function createRuntimeSchema<T>(schema: z.ZodSchema<T>): RuntimeSchema<T> {
-  return {
-    schema,
-    validate(data: unknown): T {
-      return schema.parse(data);
-    },
-    isValid(data: unknown): boolean {
-      return schema.safeParse(data).success;
-    }
-  };
-}
+// 简化的节点端口定义
 
 // 节点执行上下文
 export interface NodeExecutionContext {
   workflowId: string;
   nodeId: string;
   executionId: string;
-  previousResults: Map<string, any>;
-  metadata: Record<string, any>;
+  previousResults: Map<string, unknown>;
+  metadata: Record<string, unknown>;
 }
 
 // 节点执行结果
-export interface NodeExecutionResult<TOutput = any> {
+export interface NodeExecutionResult<TOutput = unknown> {
   success: boolean;
   data?: TOutput;
   error?: Error;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   nextNodes?: string[]; // 指定下一个要执行的节点ID
 }
 
-// 节点连接端口定义
-export interface NodePort<T = any> {
+// 节点端口定义
+export interface NodePort {
   id: string;
   name: string;
-  type: string; // 用于UI显示的类型名称
-  schema: RuntimeSchema<T>; // 运行时类型验证
+  type: string; // 简化为字符串类型
   required: boolean;
   description?: string;
 }
 
 // 节点输入端口
-export interface InputPort<T = any> extends NodePort<T> {
-  defaultValue?: T;
+export interface InputPort extends NodePort {
+  defaultValue?: unknown;
   allowMultiple?: boolean; // 是否允许多个连接
 }
 
 // 节点输出端口
-export interface OutputPort<T = any> extends NodePort<T> {
-  condition?: (data: T, context: NodeExecutionContext) => boolean; // 条件输出
+export interface OutputPort extends NodePort {
+  // 简化的输出端口
 }
 
 // 节点配置接口
@@ -74,9 +53,9 @@ export interface NodeConfig {
 
 // 抽象基础节点类
 export abstract class BaseNode<
-  TInput extends Record<string, any> = any,
-  TOutput extends Record<string, any> = any,
-  TSettings extends Record<string, any> = any
+  TInput extends Record<string, unknown> = Record<string, unknown>,
+  TOutput extends Record<string, unknown> = Record<string, unknown>,
+  TSettings extends Record<string, unknown> = Record<string, unknown>
 > {
   public readonly config: NodeConfig;
   public readonly inputPorts: Map<string, InputPort>;
@@ -90,7 +69,7 @@ export abstract class BaseNode<
 
   constructor(
     config: NodeConfig,
-    settings: TSettings = {} as TSettings
+    settings: TSettings
   ) {
     this.config = config;
     this.settings = settings;
@@ -100,7 +79,6 @@ export abstract class BaseNode<
     // 子类需要在构造函数中调用 this.defineInputs() 和 this.defineOutputs()
     this.defineInputs();
     this.defineOutputs();
-    this.validatePortDefinitions();
   }
 
   // 抽象方法：定义输入端口
@@ -116,69 +94,25 @@ export abstract class BaseNode<
   ): Promise<NodeExecutionResult<TOutput>>;
 
   // 添加输入端口的辅助方法
-  protected addInputPort<T>(
+  protected addInputPort(
     id: keyof TInput,
-    config: Omit<InputPort<T>, 'id'>
+    port: Omit<InputPort, 'id'>
   ): void {
     this.inputPorts.set(id as string, {
       id: id as string,
-      ...config
+      ...port
     });
   }
 
   // 添加输出端口的辅助方法
-  protected addOutputPort<T>(
+  protected addOutputPort(
     id: keyof TOutput,
-    config: Omit<OutputPort<T>, 'id'>
+    port: Omit<OutputPort, 'id'>
   ): void {
     this.outputPorts.set(id as string, {
       id: id as string,
-      ...config
+      ...port
     });
-  }
-
-  // 验证输入数据
-  public validateInputs(inputs: unknown): TInput {
-    const result: Record<string, any> = {};
-    
-    for (const [portId, port] of this.inputPorts) {
-      const value = (inputs as any)?.[portId];
-      
-      if (port.required && (value === undefined || value === null)) {
-        throw new Error(`Required input '${portId}' is missing for node ${this.config.id}`);
-      }
-      
-      if (value !== undefined && value !== null) {
-        try {
-          result[portId] = port.schema.validate(value);
-        } catch (error) {
-          throw new Error(`Invalid input for port '${portId}' in node ${this.config.id}: ${error}`);
-        }
-      } else if (port.defaultValue !== undefined) {
-        result[portId] = port.defaultValue;
-      }
-    }
-    
-    return result as TInput;
-  }
-
-  // 验证输出数据
-  public validateOutputs(outputs: unknown): TOutput {
-    const result: Record<string, any> = {};
-    
-    for (const [portId, port] of this.outputPorts) {
-      const value = (outputs as any)?.[portId];
-      
-      if (value !== undefined && value !== null) {
-        try {
-          result[portId] = port.schema.validate(value);
-        } catch (error) {
-          throw new Error(`Invalid output for port '${portId}' in node ${this.config.id}: ${error}`);
-        }
-      }
-    }
-    
-    return result as TOutput;
   }
 
   // 检查输入端口是否兼容
@@ -186,7 +120,7 @@ export abstract class BaseNode<
     const inputPort = this.inputPorts.get(portId);
     if (!inputPort) return false;
     
-    // 简单的类型兼容性检查 - 可以扩展为更复杂的逻辑
+    // 简单的类型兼容性检查
     return inputPort.type === sourcePort.type || 
            sourcePort.type === 'any' || 
            inputPort.type === 'any';
@@ -218,13 +152,6 @@ export abstract class BaseNode<
     return cloned;
   }
 
-  // 验证端口定义的完整性
-  private validatePortDefinitions(): void {
-    if (this.inputPorts.size === 0 && this.outputPorts.size === 0) {
-      console.warn(`Node ${this.config.id} has no input or output ports defined`);
-    }
-  }
-
   // 更新节点状态
   protected updateStatus(status: typeof this.status): void {
     this.status = status;
@@ -234,43 +161,16 @@ export abstract class BaseNode<
     }
   }
 
-  // 执行前的钩子
-  protected async beforeExecute(inputs: TInput, context: NodeExecutionContext): Promise<void> {
-    // 子类可以重写此方法来添加预处理逻辑
-  }
-
-  // 执行后的钩子
-  protected async afterExecute(
-    result: NodeExecutionResult<TOutput>,
-    context: NodeExecutionContext
-  ): Promise<void> {
-    // 子类可以重写此方法来添加后处理逻辑
-  }
-
-  // 包装执行方法，添加状态管理和钩子
+  // 简化的执行方法
   public async safeExecute(
-    inputs: unknown,
+    inputs: TInput,
     context: NodeExecutionContext
   ): Promise<NodeExecutionResult<TOutput>> {
     try {
       this.updateStatus('running');
       
-      // 验证输入
-      const validatedInputs = this.validateInputs(inputs);
-      
-      // 执行前钩子
-      await this.beforeExecute(validatedInputs, context);
-      
-      // 执行节点逻辑
-      const result = await this.execute(validatedInputs, context);
-      
-      // 验证输出
-      if (result.success && result.data) {
-        result.data = this.validateOutputs(result.data);
-      }
-      
-      // 执行后钩子
-      await this.afterExecute(result, context);
+      // 直接执行节点逻辑
+      const result = await this.execute(inputs, context);
       
       this.updateStatus(result.success ? 'completed' : 'error');
       return result;
