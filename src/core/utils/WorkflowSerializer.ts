@@ -26,26 +26,27 @@ export interface SerializedNode {
   originalSettings: Record<string, unknown>;
 }
 
-// 节点构造函数类型（为注册表统一签名而擦除具体设置类型）
-type NodeConstructor = new (
+// 节点构造函数类型（注册表内部使用统一签名）
+type AnySettings = Record<string, unknown>;
+type NodeConstructorAny = new (
   id: string,
-  settings: any
+  settings: AnySettings
 ) => BaseNode;
 
 // 节点类型注册表
 export class NodeRegistry {
-  private static nodeTypes = new Map<string, NodeConstructor>();
+  private static nodeTypes = new Map<string, NodeConstructorAny>();
 
   // 注册节点类型
-  static registerNodeType(
+  static registerNodeType<TSettings extends AnySettings>(
     nodeType: string,
-    constructor: NodeConstructor
+    constructor: new (id: string, settings: TSettings) => BaseNode
   ): void {
-    this.nodeTypes.set(nodeType, constructor);
+    this.nodeTypes.set(nodeType, constructor as unknown as NodeConstructorAny);
   }
 
   // 获取节点构造函数
-  static getNodeConstructor(nodeType: string): NodeConstructor | undefined {
+  static getNodeConstructor(nodeType: string): NodeConstructorAny | undefined {
     return this.nodeTypes.get(nodeType);
   }
 
@@ -313,12 +314,18 @@ export class WorkflowSerializer {
 
     // 移除时间戳字段进行比较
     if (json1.metadata) {
-      delete json1.metadata.createdAt;
-      delete json1.metadata.updatedAt;
+      json1.metadata = {
+        ...json1.metadata,
+        createdAt: undefined,
+        updatedAt: undefined
+      } as typeof json1.metadata;
     }
     if (json2.metadata) {
-      delete json2.metadata.createdAt;
-      delete json2.metadata.updatedAt;
+      json2.metadata = {
+        ...json2.metadata,
+        createdAt: undefined,
+        updatedAt: undefined
+      } as typeof json2.metadata;
     }
 
     return JSON.stringify(json1) === JSON.stringify(json2);
