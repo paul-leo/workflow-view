@@ -18,8 +18,6 @@ import 'reactflow/dist/style.css';
 import { WorkflowNode } from './WorkflowNode';
 import type { WorkflowNodeData } from './WorkflowNode';
 import { WorkflowEdge } from './WorkflowEdge';
-import { ToolConnectionEdge } from './edges/ToolConnectionEdge';
-import { WorkflowProvider } from './WorkflowContext';
 import type { SerializedWorkflow } from '../core/utils/WorkflowSerializer';
 import './WorkflowCanvas.css';
 
@@ -45,8 +43,7 @@ const nodeTypes: NodeTypes = {
 
 // 自定义边类型
 const edgeTypes: EdgeTypes = {
-  workflowEdge: WorkflowEdge,
-  toolConnection: ToolConnectionEdge
+  workflowEdge: WorkflowEdge
 };
 
 export const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({
@@ -58,9 +55,6 @@ export const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({
   showMiniMap = false,
   showFlowControls = false
 }) => {
-  // 工具节点管理状态
-  const [toolNodes, setToolNodes] = React.useState<Node[]>([]);
-  const [toolEdges, setToolEdges] = React.useState<Edge[]>([]);
 
   // 将JSON数据转换为ReactFlow格式
   const { initialNodes, initialEdges } = useMemo(() => {
@@ -197,117 +191,6 @@ export const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, , onEdgesChange] = useEdgesState(initialEdges);
 
-  // 工具节点管理方法
-  const addToolNodes = useCallback((agentId: string, tools: Array<{
-    id: string;
-    name: string;
-    description: string;
-    category?: string;
-  }>) => {
-    // 使用 setNodes 的函数形式来获取最新的节点状态
-    setNodes(currentNodes => {
-      const agentNode = currentNodes.find(n => n.id === agentId);
-      if (!agentNode) return currentNodes;
-
-      const agentPos = agentNode.position;
-      const newToolNodes: Node[] = [];
-      const newToolEdges: Edge[] = [];
-
-      tools.forEach((tool, index) => {
-        const toolNodeId = `${agentId}-tool-${tool.id}`;
-        
-        // 工具节点位置：在 Agent 节点右侧排列
-        const toolPos = {
-          x: agentPos.x + 350, // Agent 节点右侧
-          y: agentPos.y + (index - (tools.length - 1) / 2) * 80 // 垂直分布
-        };
-
-        // 创建工具节点
-        const toolNode: Node = {
-          id: toolNodeId,
-          type: 'workflowNode',
-          position: toolPos,
-          data: {
-            id: toolNodeId,
-            name: tool.name,
-            type: 'tool',
-            toolInfo: {
-              id: tool.id,
-              name: tool.name,
-              description: tool.description,
-              category: tool.category,
-              parentAgentId: agentId
-            },
-            status: 'pending'
-          } as WorkflowNodeData
-        };
-
-        newToolNodes.push(toolNode);
-
-        // 创建虚线连接
-        const toolEdge: Edge = {
-          id: `${agentId}-to-${toolNodeId}`,
-          source: agentId,
-          target: toolNodeId,
-          type: 'toolConnection',
-          data: {
-            toolName: tool.name,
-            toolCategory: tool.category,
-            isActive: false
-          },
-          style: {
-            strokeDasharray: '8 4',
-            strokeWidth: 2,
-            stroke: '#8B5CF6',
-            opacity: 0.6
-          },
-          animated: false,
-          zIndex: -1 // 工具连接线在背景层
-        };
-
-        newToolEdges.push(toolEdge);
-      });
-
-      setToolNodes(prev => [...prev.filter(n => !n.id.startsWith(`${agentId}-tool-`)), ...newToolNodes]);
-      setToolEdges(prev => [...prev.filter(e => !e.id.startsWith(`${agentId}-to-${agentId}-tool-`)), ...newToolEdges]);
-      
-      return currentNodes; // 返回未修改的节点状态
-    });
-  }, [setNodes, setToolNodes, setToolEdges]);
-
-  const removeToolNodes = useCallback((agentId: string) => {
-    setToolNodes(prev => prev.filter(n => !n.id.startsWith(`${agentId}-tool-`)));
-    setToolEdges(prev => prev.filter(e => !e.id.startsWith(`${agentId}-to-${agentId}-tool-`)));
-  }, [setToolNodes, setToolEdges]);
-
-  const updateToolNodeStatus = useCallback((agentId: string, toolId: string, isActive: boolean) => {
-    const toolNodeId = `${agentId}-tool-${toolId}`;
-    
-    setToolNodes(prev => prev.map(node => 
-      node.id === toolNodeId 
-        ? { ...node, data: { ...node.data, status: isActive ? 'running' : 'pending' } }
-        : node
-    ));
-    
-    setToolEdges(prev => prev.map(edge => 
-      edge.target === toolNodeId 
-        ? { 
-            ...edge, 
-            data: { ...edge.data, isActive },
-            style: { 
-              ...edge.style, 
-              stroke: isActive ? '#8B5CF6' : '#9CA3AF',
-              opacity: isActive ? 1 : 0.6 
-            },
-            animated: isActive 
-          }
-        : edge
-    ));
-  }, [setToolNodes, setToolEdges]);
-
-  // 合并工具节点和工具边到主要节点和边中
-  const allNodes = useMemo(() => [...nodes, ...toolNodes], [nodes, toolNodes]);
-  const allEdges = useMemo(() => [...edges, ...toolEdges], [edges, toolEdges]);
 
   // 同步节点状态更新到画布
   useEffect(() => {
@@ -329,29 +212,22 @@ export const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({
     }
   }, [onNodeClick]);
 
-  // 将工具管理方法传递给节点
-  const nodeContextValue = useMemo(() => ({
-    addToolNodes,
-    removeToolNodes,
-    updateToolNodeStatus
-  }), [addToolNodes, removeToolNodes, updateToolNodeStatus]);
 
   // 节点状态通过 nodeStatuses prop 传递并自动同步到画布
 
   return (
-    <WorkflowProvider value={nodeContextValue}>
-      <div className={`workflow-canvas ${className || ''}`}>
-        <div className="workflow-canvas-header">
-          <h2 className="workflow-title">{workflowData.config.name}</h2>
-          {workflowData.metadata?.description && (
-            <p className="workflow-description">{workflowData.metadata.description}</p>
-          )}
-        </div>
+    <div className={`workflow-canvas ${className || ''}`}>
+      <div className="workflow-canvas-header">
+        <h2 className="workflow-title">{workflowData.config.name}</h2>
+        {workflowData.metadata?.description && (
+          <p className="workflow-description">{workflowData.metadata.description}</p>
+        )}
+      </div>
 
-        <div className="workflow-canvas-content">
-          <ReactFlow
-            nodes={allNodes}
-            edges={allEdges}
+      <div className="workflow-canvas-content">
+        <ReactFlow
+          nodes={nodes}
+          edges={edges}
             onNodesChange={onNodesChange}
             onEdgesChange={onEdgesChange}
             onNodeClick={handleNodeClick}
@@ -405,9 +281,8 @@ export const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({
                 zoomable
               />
             )}
-          </ReactFlow>
-        </div>
+        </ReactFlow>
       </div>
-    </WorkflowProvider>
+    </div>
   );
 };

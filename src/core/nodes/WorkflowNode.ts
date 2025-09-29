@@ -258,7 +258,7 @@ export class WorkflowNode extends BaseNode<WorkflowNodeInput, WorkflowNodeOutput
     
     for (const part of parts) {
       if (current == null || typeof current !== 'object') return undefined;
-      current = (current as Record<string, unknown>)[part];
+      current = (current as Record<string, unknown>)[part] as unknown;
     }
     
     return current;

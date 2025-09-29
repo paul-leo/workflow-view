@@ -1,3 +1,4 @@
+import React from 'react';
 import { z } from 'zod';
 import { Calculator, Search, Code2, FileText, Clock } from 'lucide-react';
 import type { Tool, NodeExecutionContext } from '../types/Tool';
@@ -11,12 +12,12 @@ export const CalculatorTool: Tool = {
   name: '计算器',
   description: '执行基本的数学运算，支持加减乘除、幂运算等',
   category: '数学',
-  icon: Calculator,
+  icon: <Calculator size={16} />,
   parameters: z.object({
     expression: z.string().describe('要计算的数学表达式，如 "2 + 3 * 4"')
   }),
   
-  async execute(input: { expression: string }, context: NodeExecutionContext) {
+  async execute(input: { expression: string }, _context: NodeExecutionContext) {
     try {
       // 简单的数学表达式求值（生产环境建议使用更安全的数学库）
       const sanitizedExpression = input.expression
@@ -54,13 +55,13 @@ export const WebSearchTool: Tool = {
   name: '网络搜索',
   description: '在互联网上搜索信息',
   category: '搜索',
-  icon: Search,
+  icon: <Search size={16} />,
   parameters: z.object({
     query: z.string().describe('搜索关键词'),
     limit: z.number().optional().default(5).describe('返回结果数量限制')
   }),
   
-  async execute(input: { query: string; limit?: number }, context: NodeExecutionContext) {
+  async execute(input: { query: string; limit?: number }, _context: NodeExecutionContext) {
     // 模拟搜索延迟
     await new Promise(resolve => setTimeout(resolve, 1000));
     
@@ -103,13 +104,13 @@ export const CodeExecutorTool: Tool = {
   name: '代码执行器',
   description: '执行简单的 JavaScript 代码片段',
   category: '开发',
-  icon: Code2,
+  icon: <Code2 size={16} />,
   parameters: z.object({
     code: z.string().describe('要执行的 JavaScript 代码'),
     timeout: z.number().optional().default(5000).describe('执行超时时间（毫秒）')
   }),
   
-  async execute(input: { code: string; timeout?: number }, context: NodeExecutionContext) {
+  async execute(input: { code: string; timeout?: number }, _context: NodeExecutionContext) {
     try {
       // 简单的代码安全检查
       const dangerousPatterns = [
@@ -179,13 +180,13 @@ export const TextProcessorTool: Tool = {
   name: '文本处理器',
   description: '提供文本统计、格式化、转换等功能',
   category: '文本',
-  icon: FileText,
+  icon: <FileText size={16} />,
   parameters: z.object({
     text: z.string().describe('要处理的文本'),
     operation: z.enum(['count', 'uppercase', 'lowercase', 'reverse', 'summary']).describe('处理操作类型')
   }),
   
-  async execute(input: { text: string; operation: string }, context: NodeExecutionContext) {
+  async execute(input: { text: string; operation: string }, _context: NodeExecutionContext) {
     const { text, operation } = input;
     
     switch (operation) {
@@ -250,7 +251,7 @@ export const TimeTool: Tool = {
   name: '时间工具',
   description: '获取当前时间、时间格式化、时区转换等',
   category: '工具',
-  icon: Clock,
+  icon: <Clock size={16} />,
   parameters: z.object({
     operation: z.enum(['current', 'format', 'add', 'diff']).describe('时间操作类型'),
     format: z.string().optional().describe('时间格式（用于 format 操作）'),
@@ -259,7 +260,7 @@ export const TimeTool: Tool = {
     targetTime: z.string().optional().describe('目标时间（用于 diff 操作）')
   }),
   
-  async execute(input: any, context: NodeExecutionContext) {
+  async execute(input: any, _context: NodeExecutionContext) {
     const now = new Date();
     
     switch (input.operation) {
@@ -302,7 +303,7 @@ export const TimeTool: Tool = {
           days: 24 * 60 * 60 * 1000
         };
         
-        const newTime = new Date(now.getTime() + amount * multipliers[unit]);
+        const newTime = new Date(now.getTime() + amount * multipliers[unit as keyof typeof multipliers]);
         return {
           operation: '时间计算',
           result: {

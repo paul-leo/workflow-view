@@ -37,7 +37,7 @@ export class ExpressionParser {
 
     try {
       // 简单的正则替换
-      return str.replace(/\{\{([^}]+)\}\}/g, (match, expression) => {
+      return str.replace(/\{\{([^}]+)\}\}/g, (_, expression) => {
         const trimmedExpr = expression.trim();
         const value = this.evaluateSimpleExpression(trimmedExpr, context);
         return this.toString(value);

@@ -21,7 +21,6 @@ export type ToolConnectionEdgeProps = EdgeProps<ToolConnectionEdgeData>;
  * 用虚线连接 AgentNode 和 ToolNode
  */
 export const ToolConnectionEdge: React.FC<ToolConnectionEdgeProps> = ({
-  id,
   sourceX,
   sourceY,
   targetX,
@@ -55,7 +54,6 @@ export const ToolConnectionEdge: React.FC<ToolConnectionEdgeProps> = ({
           opacity: data?.isActive ? 1 : 0.6,
           animation: data?.isActive ? 'tool-connection-pulse 2s ease-in-out infinite' : 'none'
         }}
-        className={`tool-connection-edge ${selected ? 'selected' : ''} ${data?.isActive ? 'active' : ''}`}
       />
       
       {/* 边标签 */}

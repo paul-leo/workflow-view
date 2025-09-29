@@ -1,6 +1,9 @@
 import { z } from 'zod';
 import type { NodeExecutionContext } from '../abstract/BaseNode';
 
+// 重新导出 NodeExecutionContext
+export type { NodeExecutionContext };
+
 // 工具接口定义
 export interface Tool {
   /** 工具唯一标识符 */

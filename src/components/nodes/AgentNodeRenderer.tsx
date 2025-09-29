@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { Bot, Wrench, Zap, CheckCircle, XCircle, Clock, Eye, EyeOff } from 'lucide-react';
+import React, { useState } from 'react';
+import { Bot, Wrench, Zap, CheckCircle, XCircle, Clock, Expand, Minimize } from 'lucide-react';
 import { BaseNodeRenderer, type BaseNodeRendererProps } from './BaseNodeRenderer';
-import { useWorkflowContext } from '../WorkflowContext';
+import { AgentSubFlow } from './AgentSubFlow';
 import './AgentNodeRenderer.css';
 
 // Agent节点渲染器属性
@@ -44,43 +44,20 @@ export const AgentNodeRenderer: React.FC<AgentNodeRendererProps> = (props) => {
   const toolCalls = data.toolCalls || [];
   const settings = data.settings || {};
   
-  // 获取工作流上下文中的工具管理方法
-  const { addToolNodes, removeToolNodes, updateToolNodeStatus } = useWorkflowContext();
-  
-  // 控制工具节点显示状态
-  const [showToolNodes, setShowToolNodes] = useState(false);
+  // 控制子流显示状态
+  const [showSubFlow, setShowSubFlow] = useState(false);
   const [activeTools, setActiveTools] = useState<string[]>([]);
 
-  // 处理工具节点显示/隐藏切换
-  const handleToggleToolNodes = () => {
-    if (showToolNodes) {
-      removeToolNodes(data.id);
-      setShowToolNodes(false);
-    } else {
-      addToolNodes(data.id, tools);
-      setShowToolNodes(true);
-    }
-  };
-
-  // 处理工具激活状态切换
+  // 处理工具点击
   const handleToolClick = (toolId: string) => {
-    const isActive = activeTools.includes(toolId);
-    const newActiveTools = isActive 
-      ? activeTools.filter(id => id !== toolId)
-      : [...activeTools, toolId];
-    
-    setActiveTools(newActiveTools);
-    updateToolNodeStatus(data.id, toolId, !isActive);
+    console.log('Tool clicked:', toolId);
+    // 切换工具激活状态
+    setActiveTools(prev => 
+      prev.includes(toolId) 
+        ? prev.filter(id => id !== toolId)
+        : [...prev, toolId]
+    );
   };
-
-  // 当组件卸载时清理工具节点
-  useEffect(() => {
-    return () => {
-      if (showToolNodes) {
-        removeToolNodes(data.id);
-      }
-    };
-  }, [data.id, removeToolNodes, showToolNodes]);
 
   // 渲染工具列表
   const renderTools = () => {
@@ -179,19 +156,30 @@ export const AgentNodeRenderer: React.FC<AgentNodeRendererProps> = (props) => {
             )}
             {tools.length > 0 && (
               <button 
-                className="agent-tool-nodes-toggle"
-                onClick={handleToggleToolNodes}
-                title={showToolNodes ? '隐藏工具节点' : '显示工具节点'}
+                className="agent-subflow-toggle"
+                onClick={() => setShowSubFlow(!showSubFlow)}
+                title={showSubFlow ? '收起工具视图' : '展开工具视图'}
               >
-                {showToolNodes ? <EyeOff size={12} /> : <Eye size={12} />}
-                <span>{showToolNodes ? '隐藏工具' : '显示工具'}</span>
+                {showSubFlow ? <Minimize size={12} /> : <Expand size={12} />}
               </button>
             )}
           </div>
         )}
 
-        {/* 工具列表（显示可用工具） */}
-        {renderTools()}
+        {/* 子流工具视图 */}
+        {showSubFlow && tools.length > 0 && (
+          <div className="agent-subflow-section">
+            <AgentSubFlow
+              agentId={data.id}
+              tools={tools}
+              activeTools={activeTools}
+              onToolClick={handleToolClick}
+            />
+          </div>
+        )}
+
+        {/* 传统工具列表（当子流未展开时显示） */}
+        {!showSubFlow && renderTools()}
 
         {/* 最近工具调用 */}
         {renderRecentToolCalls()}
@@ -220,8 +208,8 @@ export const AgentNodeRenderer: React.FC<AgentNodeRendererProps> = (props) => {
       styling={{
         borderColor: props.selected ? '#8B5CF6' : '#E5E7EB',
         backgroundColor: '#FFFFFF',
-        minWidth: 280,
-        maxWidth: 320,
+        minWidth: showSubFlow ? 400 : 280,
+        maxWidth: showSubFlow ? 500 : 320,
         className: 'agent-node-renderer'
       }}
       className={`agent-node ${props.className || ''}`}

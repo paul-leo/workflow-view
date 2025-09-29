@@ -34,18 +34,18 @@ const getToolIcon = (toolId: string) => {
   return iconMap[toolId] || <Zap size={12} />;
 };
 
-// 工具分类颜色
-const getCategoryColor = (category?: string) => {
-  const colorMap: Record<string, string> = {
-    '数学': '#F59E0B',
-    '搜索': '#3B82F6',
-    '开发': '#10B981',
-    '文本': '#8B5CF6',
-    '工具': '#6B7280',
-  };
-  
-  return colorMap[category || ''] || '#6B7280';
-};
+// 工具分类颜色 (暂时注释掉，未使用)
+// const getCategoryColor = (category?: string) => {
+//   const colorMap: Record<string, string> = {
+//     '数学': '#F59E0B',
+//     '搜索': '#3B82F6',
+//     '开发': '#10B981',
+//     '文本': '#8B5CF6',
+//     '工具': '#6B7280',
+//   };
+//   
+//   return colorMap[category || ''] || '#6B7280';
+// };
 
 // 自定义工具节点组件
 const ToolNode: React.FC<{ data: ToolNodeData }> = ({ data }) => {
@@ -198,7 +198,7 @@ export const AgentSubFlow: React.FC<AgentSubFlowProps> = ({
   const [edges, , onEdgesChange] = useEdgesState(initialEdges);
 
   // 节点点击处理
-  const handleNodeClick = useCallback((event: React.MouseEvent, node: Node) => {
+  const handleNodeClick = useCallback((_: React.MouseEvent, node: Node) => {
     if (node.type === 'toolNode' && onToolClick) {
       const toolId = node.id.replace('tool-', '');
       onToolClick(toolId);
@@ -244,7 +244,6 @@ export const AgentSubFlow: React.FC<AgentSubFlowProps> = ({
           color="#F3F4F6" 
           gap={10} 
           size={0.5}
-          variant="dots"
         />
       </ReactFlow>
     </div>
